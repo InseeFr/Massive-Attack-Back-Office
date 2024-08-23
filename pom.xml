@@ -6,7 +6,7 @@
 	<groupId>fr.insee</groupId>
 	<artifactId>sabdatab</artifactId>
 	<packaging>war</packaging>
-	<version>3.0.5</version>
+	<version>3.0.6</version>
 	<name>Sabiane Data</name>
 
 	<properties>
