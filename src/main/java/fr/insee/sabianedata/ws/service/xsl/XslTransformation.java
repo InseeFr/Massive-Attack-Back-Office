@@ -34,8 +34,6 @@ public class XslTransformation {
     }
 
     public void transformFods2XML(InputStream inputFile, OutputStream outputFile, InputStream xslSheet) throws Exception {
-        log.info("Using TransformerFactory: {}", tFactory.getClass().getName());
-
         Transformer transformer = tFactory.newTransformer(new StreamSource(xslSheet));
         xslTransform(transformer, inputFile, outputFile);
     }
@@ -43,7 +41,7 @@ public class XslTransformation {
     static class ClasspathResourceURIResolver implements URIResolver {
         @Override
         public Source resolve(String href, String base) throws TransformerException {
-            log.info("Resolving URI: href={}, base={}", href, base);
+            log.debug("Resolving URI: href={}, base={}", href, base);
 
             // Adjust relative paths
             String resolvedPath = "/xslt/".concat(href);
@@ -54,7 +52,7 @@ public class XslTransformation {
                 throw new TransformerException("Resource not found: " + resolvedPath);
             }
 
-            log.info("Successfully resolved XSL resource at: {}", resolvedPath);
+            log.debug("Successfully resolved XSL resource at: {}", resolvedPath);
             return new StreamSource(resourceStream);
         }
     }

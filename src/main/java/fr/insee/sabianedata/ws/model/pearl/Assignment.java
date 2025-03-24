@@ -17,7 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 @Getter
 @Setter
 @Slf4j
-public class Assignement {
+public class Assignment {
 
     @JacksonXmlProperty(localName = "SurveyUnitId")
     private String surveyUnitId;

@@ -6,20 +6,25 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.io.File;
+import java.nio.file.Path;
 
 @Getter
 @Setter
 public class QuestionnaireModelDto extends QuestionnaireModel {
 
-    private JsonNode value;
-    private static final String QUESTIONNAIRE_MODELS = "questionnaireModels";
+	private JsonNode value;
+	private static final String QUESTIONNAIRE_MODELS = "questionnaireModels";
 
-    public QuestionnaireModelDto(QuestionnaireModel questionnaireModel, String folder) {
-        super(questionnaireModel.getIdQuestionnaireModel(), questionnaireModel.getLabel(),
-                questionnaireModel.getRequiredNomenclatureIds());
-        File questionnaireFile = new File(
-                folder + File.separator + QUESTIONNAIRE_MODELS + File.separator + questionnaireModel.getFileName());
-        this.value = JsonFileToJsonNode.getJsonNodeFromFile(questionnaireFile);
-    }
+	public QuestionnaireModelDto(QuestionnaireModel questionnaireModel, Path folderPath) {
+		super(questionnaireModel.getIdQuestionnaireModel(), questionnaireModel.getLabel(),
+				questionnaireModel.getRequiredNomenclatureIds());
+
+		Path questionnaireFilePath = folderPath
+				.resolve(QUESTIONNAIRE_MODELS)
+				.resolve(questionnaireModel.getFileName());
+
+		File questionnaireFile = questionnaireFilePath.toFile();
+		this.value = JsonFileToJsonNode.getJsonNodeFromFile(questionnaireFile);
+	}
 
 }

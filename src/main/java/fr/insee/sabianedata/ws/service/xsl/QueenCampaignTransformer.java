@@ -16,7 +16,7 @@ public class QueenCampaignTransformer {
     private static final XslTransformation saxonService = new XslTransformation();
     public static final String QUEEN_EXTRACT_CAMPAIGN =  "/xslt/queen-extract-campaign.xsl";
     public static final String QUEEN_EXTRACT_QUESTIONNAIRE =  "/xslt/queen-extract-questionnaire-models.xsl";
-    public static final String QUEEN_EXTRACT_SURVEYUNITS =  "/xslt/queen-extract-survey-units.xsl";
+    public static final String QUEEN_EXTRACT_SURVEY_UNITS =  "/xslt/queen-extract-survey-units.xsl";
     public static final String QUEEN_EXTRACT_NOMENCLATURES =  "/xslt/queen-extract-nomenclatures.xsl";
 
 
@@ -47,15 +47,15 @@ public class QueenCampaignTransformer {
             case CAMPAIGN -> InputStreamUtil.getInputStreamFromPath(QUEEN_EXTRACT_CAMPAIGN);
             case QUESTIONNAIRE_MODELS ->
                     InputStreamUtil.getInputStreamFromPath(QUEEN_EXTRACT_QUESTIONNAIRE);
-            case SURVEY_UNITS -> InputStreamUtil.getInputStreamFromPath(QUEEN_EXTRACT_SURVEYUNITS);
+            case SURVEY_UNITS -> InputStreamUtil.getInputStreamFromPath(QUEEN_EXTRACT_SURVEY_UNITS);
             case NOMENCLATURES -> InputStreamUtil.getInputStreamFromPath(QUEEN_EXTRACT_NOMENCLATURES);
-            case ASSIGNEMENT -> throw new IllegalArgumentException("Invalid type: ASSIGNEMENT is not supported.");
+            case ASSIGNMENT -> throw new IllegalArgumentException("Invalid type: ASSIGNMENT is not supported.");
         };
 
         try {
             saxonService.transformFods2XML(inputStream, outputStream, xsl);
         } catch (Exception e) {
-            String errorMessage = "An error was occured during the operations fods2xml transformation.";
+            String errorMessage = "An error occurred during the operations fods2xml transformation.";
             logger.error(errorMessage, e);
             throw new Exception(errorMessage);
         }

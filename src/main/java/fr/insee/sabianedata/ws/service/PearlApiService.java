@@ -69,12 +69,12 @@ public class PearlApiService {
         return restTemplate.exchange(apiUri, HttpMethod.POST, new HttpEntity<>(users, httpHeaders), String.class);
     }
 
-    public ResponseEntity<String> postAssignementsToApi(HttpServletRequest request, List<Assignement> assignements) {
+    public ResponseEntity<String> postAssignmentsToApi(HttpServletRequest request, List<Assignment> assignments) {
         log.info("Create assignements");
         final String apiUri = pearlApiUrl.concat("/api/survey-units/interviewers");
         HttpHeaders httpHeaders = createSimpleHeadersAuth(request);
         httpHeaders.setContentType(MediaType.APPLICATION_JSON);
-        return restTemplate.exchange(apiUri, HttpMethod.POST, new HttpEntity<>(assignements, httpHeaders),
+        return restTemplate.exchange(apiUri, HttpMethod.POST, new HttpEntity<>(assignments, httpHeaders),
                 String.class);
     }
 

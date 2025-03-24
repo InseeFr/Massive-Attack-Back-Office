@@ -1,6 +1,6 @@
 package fr.insee.sabianedata.ws.service;
 
-import fr.insee.sabianedata.ws.model.pearl.Assignement;
+import fr.insee.sabianedata.ws.model.pearl.Assignment;
 import fr.insee.sabianedata.ws.model.pearl.PearlCampaign;
 import fr.insee.sabianedata.ws.model.pearl.PearlSurveyUnit;
 import fr.insee.sabianedata.ws.model.queen.NomenclatureDto;
@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.List;
 
 @Service
@@ -23,17 +24,17 @@ public class ExtractionService {
         return queenExtractEntities.getQueenCampaignFromFods(queenFodsInput);
     }
 
-    public List<QuestionnaireModelDto> extractQuestionnaires(File queenFodsInput, String queenFolder) throws Exception {
+    public List<QuestionnaireModelDto> extractQuestionnaires(File queenFodsInput, Path queenFolder) throws Exception {
         return queenExtractEntities
                 .getQueenQuestionnaireModelsDtoFromFods(queenFodsInput, queenFolder);
     }
 
-    public List<NomenclatureDto> extractNomenclatures(File queenFodsInput, String queenFolder) throws Exception {
+    public List<NomenclatureDto> extractNomenclatures(File queenFodsInput, Path queenFolder) throws Exception {
         return queenExtractEntities
                 .getQueenNomenclaturesDtoFromFods(queenFodsInput, queenFolder);
     }
 
-    public List<QueenSurveyUnit> extractQueenSurveyUnits(File queenFodsInput, String queenFolder) throws Exception {
+    public List<QueenSurveyUnit> extractQueenSurveyUnits(File queenFodsInput, Path queenFolder) throws Exception {
         return queenExtractEntities.getQueenSurveyUnitsFromFods(queenFodsInput,
                 queenFolder);
     }
@@ -48,7 +49,7 @@ public class ExtractionService {
                 .getPearlSurveyUnitsFromFods(pearlFodsInput);
     }
 
-    public List<Assignement> extractAssignements(File pearlFodsInput) throws Exception {
+    public List<Assignment> extractAssignments(File pearlFodsInput) throws Exception {
         return pearlExtractEntities.getAssignementsFromFods(pearlFodsInput);
     }
 

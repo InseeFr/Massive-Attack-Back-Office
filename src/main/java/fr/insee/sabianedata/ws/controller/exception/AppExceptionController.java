@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.webjars.NotFoundException;
 
 @ControllerAdvice
 @Slf4j
@@ -18,4 +19,13 @@ public class AppExceptionController {
         log.warn(exceptionMessage);
         return new ResponseEntity<>(exceptionMessage, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
+    @ExceptionHandler(value = NotFoundException.class)
+    public ResponseEntity<Object> entityNotFound(Exception exception) {
+        String exceptionMessage =  exception.getMessage();
+        log.warn(exceptionMessage);
+        return new ResponseEntity<>(exceptionMessage, HttpStatus.NOT_FOUND);
+    }
+
+
 }

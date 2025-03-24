@@ -1,8 +1,8 @@
 package fr.insee.sabianedata.ws.service;
 
+import fr.insee.sabianedata.ws.model.massive_attack.MassiveCampaign;
 import fr.insee.sabianedata.ws.model.massive_attack.MassiveSurveyUnit;
 import fr.insee.sabianedata.ws.model.massive_attack.OrganisationUnitDto;
-import fr.insee.sabianedata.ws.model.massive_attack.TrainingCourse;
 import fr.insee.sabianedata.ws.model.pearl.Campaign;
 import fr.insee.sabianedata.ws.model.pearl.InterviewerDto;
 import fr.insee.sabianedata.ws.model.pearl.PearlSurveyUnit;
@@ -27,7 +27,7 @@ public class ExternalApiService {
     private final PearlApiService pearlApiService;
     private final QueenApiService queenApiService;
 
-    public TrainingCourse postTrainingCourse(TrainingCourse tc, HttpServletRequest request) {
+    public MassiveCampaign postTrainingCourse(MassiveCampaign trainingCourse, HttpServletRequest request) {
 
         boolean pearlCampaignSuccess = false;
         boolean pearlSurveyUnitSuccess = false;
@@ -35,15 +35,15 @@ public class ExternalApiService {
 
         log.info("Trying to post pearl campaign");
         try {
-            pearlApiService.postCampaignToApi(request, tc.getCampaign().getPearlCampaign());
+            pearlApiService.postCampaignToApi(request, trainingCourse.getPearlCampaign());
             pearlCampaignSuccess = true;
         } catch (Exception e) {
-            log.error("Error during creation campaign : {}", tc.getCampaignId());
+            log.error("Error during creation campaign : {}", trainingCourse.getId());
             log.error(e.getMessage());
         }
 
         List<PearlSurveyUnit> pearlSurveyUnitsToPost =
-                tc.getSurveyUnits().stream().map(MassiveSurveyUnit::getPearlSurveyUnit).toList();
+                trainingCourse.getSurveyUnits().stream().map(MassiveSurveyUnit::getPearlSurveyUnit).toList();
         log.info("Trying to post {}  pearl surveyUnits", pearlSurveyUnitsToPost.size());
 
         try {
@@ -53,12 +53,12 @@ public class ExternalApiService {
             log.error("Error during creation of surveyUnits");
             log.error(e.getMessage());
         }
-        log.info("Trying to post {} assignements", tc.getAssignments().size());
+        log.info("Trying to post {} assignments", trainingCourse.getAssignments().size());
         try {
-            pearlApiService.postAssignementsToApi(request, tc.getAssignments());
+            pearlApiService.postAssignmentsToApi(request, trainingCourse.getAssignments());
             assignementSuccess = true;
         } catch (Exception e) {
-            log.error("Error during creation of assignements");
+            log.error("Error during creation of assignments");
             log.error(e.getMessage());
         }
         boolean pearlSuccess = pearlCampaignSuccess && pearlSurveyUnitSuccess && assignementSuccess;
@@ -72,8 +72,8 @@ public class ExternalApiService {
         long queenSurveyUnitsSuccess;
         boolean queenCampaignSuccess = false;
 
-        log.info("Trying to post {} nomenclatures", tc.getNomenclatures().size());
-        nomenclaturesSuccess = tc.getNomenclatures().stream().parallel().filter(n -> {
+        log.info("Trying to post {} nomenclatures", trainingCourse.getQueenCampaign().getNomenclatures().size());
+        nomenclaturesSuccess = trainingCourse.getQueenCampaign().getNomenclatures().stream().parallel().filter(n -> {
             try {
                 queenApiService.postNomenclaturesToApi(request, n);
                 return true;
@@ -84,8 +84,8 @@ public class ExternalApiService {
             }
         }).count();
 
-        log.info("Trying to post {} questionnaires", tc.getQuestionnaireModels().size());
-        questionnairesSuccess = tc.getQuestionnaireModels().stream().parallel().filter(q -> {
+        log.info("Trying to post {} questionnaires", trainingCourse.getQueenCampaign().getQuestionnaireModels().size());
+        questionnairesSuccess = trainingCourse.getQueenCampaign().getQuestionnaireModels().stream().parallel().filter(q -> {
             try {
                 queenApiService.postQuestionnaireModelToApi(request, q);
                 return true;
@@ -99,19 +99,19 @@ public class ExternalApiService {
 
         log.info("Trying to post campaign");
         try {
-            queenApiService.postCampaignToApi(request, tc.getCampaign().getQueenCampaign());
+            queenApiService.postCampaignToApi(request, trainingCourse.getQueenCampaign());
             queenCampaignSuccess = true;
         } catch (Exception e) {
-            log.error("Error during creation of campaignDto : {}", tc.getCampaignId());
+            log.error("Error during creation of campaignDto : {}", trainingCourse.getId());
             log.error(e.getMessage());
         }
         List<QueenSurveyUnit> queenSurveyUnitsToPost =
-                tc.getSurveyUnits().stream().map(MassiveSurveyUnit::getQueenSurveyUnit).toList();
+                trainingCourse.getSurveyUnits().stream().map(MassiveSurveyUnit::getQueenSurveyUnit).toList();
 
         log.info("Trying to post {} queen survey-units", queenSurveyUnitsToPost.size());
         queenSurveyUnitsSuccess = queenSurveyUnitsToPost.stream().parallel().filter(su -> {
             try {
-                queenApiService.postUeToApi(request, su, tc.getCampaignId());
+                queenApiService.postUeToApi(request, su, trainingCourse.getId());
                 return true;
             } catch (Exception e) {
                 log.error("Error during creation of surveyUnit : {}", su.getId());
@@ -120,18 +120,18 @@ public class ExternalApiService {
             }
         }).count();
 
-        boolean queenSuccess = queenCampaignSuccess && nomenclaturesSuccess == tc.getNomenclatures().size()
-                && questionnairesSuccess == tc.getQuestionnaireModels().size()
+        boolean queenSuccess = queenCampaignSuccess && nomenclaturesSuccess == trainingCourse.getQueenCampaign().getNomenclatures().size()
+                && questionnairesSuccess == trainingCourse.getQueenCampaign().getQuestionnaireModels().size()
                 && queenSurveyUnitsSuccess == queenSurveyUnitsToPost.size();
         String queenMessage = String.format(
                 "Nomenclatures: %d/%d, Questionnaires: %d/%d, SurveyUnits: %d/%d, Campaign: %b",
-                nomenclaturesSuccess, tc.getNomenclatures().size(), questionnairesSuccess,
-                tc.getQuestionnaireModels().size(), queenSurveyUnitsSuccess,
+                nomenclaturesSuccess, trainingCourse.getQueenCampaign().getNomenclatures().size(), questionnairesSuccess,
+                trainingCourse.getQueenCampaign().getQuestionnaireModels().size(), queenSurveyUnitsSuccess,
                 queenSurveyUnitsToPost.size(), queenCampaignSuccess);
 
         log.info(queenMessage);
 
-        return pearlSuccess && queenSuccess ? tc : null;
+        return pearlSuccess && queenSuccess ? trainingCourse : null;
     }
 
     public boolean checkUsers(List<String> users, HttpServletRequest request) {

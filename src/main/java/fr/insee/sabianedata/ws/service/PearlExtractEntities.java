@@ -36,7 +36,7 @@ public class PearlExtractEntities {
         return pearlCampaign;
     }
 
-    public List<Assignement> getAssignementsFromFods(File fods) throws Exception {
+    public List<Assignment> getAssignementsFromFods(File fods) throws Exception {
         File file = pearlTransformService.getPearlAssignement(fods);
         XmlMapper xmlMapper = new XmlMapper();
         Assignements assignementList = xmlMapper.readValue(file, Assignements.class);

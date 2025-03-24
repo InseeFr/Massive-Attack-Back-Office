@@ -2,6 +2,7 @@ package fr.insee.sabianedata.ws.service;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,12 +29,12 @@ public class QueenExtractEntities {
         return getQueenCampaignFromXMLFile(file);
     }
 
-    public List<QueenSurveyUnit> getQueenSurveyUnitsFromFods(File fods, String folder) throws Exception {
+    public List<QueenSurveyUnit> getQueenSurveyUnitsFromFods(File fods, Path folderPath) throws Exception {
         File file = queenTransformService.getQueenSurveyUnits(fods);
         SurveyUnitsList surveyUnits = xmlMapper.readValue(file, SurveyUnitsList.class);
         return surveyUnits.getSurveyUnits().stream().map(s -> {
             QueenSurveyUnit suDto = new QueenSurveyUnit(s);
-            suDto.extractJsonFromFiles(folder);
+            suDto.extractJsonFromFiles(folderPath);
             return suDto;
         }).toList();
     }
@@ -45,9 +46,9 @@ public class QueenExtractEntities {
                 questionnaireModels.getQuestionnaireModels() : List.of();
     }
 
-    public List<QuestionnaireModelDto> getQueenQuestionnaireModelsDtoFromFods(File fods, String folder) throws Exception {
+    public List<QuestionnaireModelDto> getQueenQuestionnaireModelsDtoFromFods(File fods, Path folderPath) throws Exception {
         List<QuestionnaireModel> questionnaireModels = getQueenQuestionnaireModelsFromFods(fods);
-        return questionnaireModels.stream().map(q -> new QuestionnaireModelDto(q, folder)).toList();
+        return questionnaireModels.stream().map(q -> new QuestionnaireModelDto(q, folderPath)).toList();
     }
 
     public List<Nomenclature> getQueenNomenclatureFromFods(File fods) throws Exception {
@@ -58,9 +59,9 @@ public class QueenExtractEntities {
                 lists;
     }
 
-    public List<NomenclatureDto> getQueenNomenclaturesDtoFromFods(File fods, String folder) throws Exception {
+    public List<NomenclatureDto> getQueenNomenclaturesDtoFromFods(File fods, Path folderPath) throws Exception {
         List<Nomenclature> nomenclatures = getQueenNomenclatureFromFods(fods);
-        return nomenclatures.stream().map(n -> new NomenclatureDto(n, folder)).toList();
+        return nomenclatures.stream().map(n -> new NomenclatureDto(n, folderPath)).toList();
     }
 
 }

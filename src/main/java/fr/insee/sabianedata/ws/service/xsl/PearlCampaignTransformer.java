@@ -30,7 +30,7 @@ public class PearlCampaignTransformer {
     }
 
     public File extractAssignement(File input) throws Exception {
-        return extract(input, ExtractionType.ASSIGNEMENT);
+        return extract(input, ExtractionType.ASSIGNMENT);
     }
 
     public File extract(File input, ExtractionType type) throws Exception {
@@ -42,7 +42,7 @@ public class PearlCampaignTransformer {
 
              InputStream xsl = switch (type) {
                  case CAMPAIGN -> InputStreamUtil.getInputStreamFromPath(PEARL_EXTRACT_CAMPAIGN);
-                 case ASSIGNEMENT -> InputStreamUtil.getInputStreamFromPath(PEARL_EXTRACT_ASSIGNMENT);
+                 case ASSIGNMENT -> InputStreamUtil.getInputStreamFromPath(PEARL_EXTRACT_ASSIGNMENT);
                  case SURVEY_UNITS -> InputStreamUtil.getInputStreamFromPath(PEARL_EXTRACT_SURVEY_UNITS);
                  case QUESTIONNAIRE_MODELS -> throw new IllegalArgumentException("Invalid type: QUESTIONNAIRE_MODELS is not supported.");
                  case NOMENCLATURES -> throw new IllegalArgumentException("Invalid type: NOMENCLATURES is not supported.");

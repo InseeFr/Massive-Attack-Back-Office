@@ -1,5 +1,6 @@
 package fr.insee.sabianedata.ws.model.queen;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -27,6 +28,12 @@ public class QueenCampaign {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     @JacksonXmlElementWrapper(useWrapping = false)
     private List<String> questionnaireIds;
+
+    @JsonIgnore
+    private List<QuestionnaireModelDto> questionnaireModels;
+
+    @JsonIgnore
+    private List<NomenclatureDto> nomenclatures;
 
     @JacksonXmlProperty(localName = "Metadata")
     private MetadataDto metadata;

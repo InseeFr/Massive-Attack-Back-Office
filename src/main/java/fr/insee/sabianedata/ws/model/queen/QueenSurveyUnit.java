@@ -1,6 +1,7 @@
 package fr.insee.sabianedata.ws.model.queen;
 
 import java.io.File;
+import java.nio.file.Path;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -36,8 +37,8 @@ public class QueenSurveyUnit extends SurveyUnit {
         this.stateData = suDto.getStateData();
     }
 
-    public void extractJsonFromFiles(String folder) {
-        String finalFolder = folder + File.separator + FOLDER;
+    public void extractJsonFromFiles(Path folderPath) {
+        String finalFolder = folderPath + File.separator + FOLDER;
         File dtodataFile = new File(finalFolder + File.separator + getDataFile());
         File commentFile = new File(finalFolder + File.separator + getCommentFile());
         File personalizationFile = new File(finalFolder + File.separator + getPersonalizationFile());
