@@ -36,7 +36,7 @@ public class MassiveAttackService {
 		return externalApiService.deleteCampaign(request, encodedId);
 	}
 
-	public List<String> getTrainingScenariosTitles() {
+	public List<TrainingScenario> getTrainingScenariosTitles() {
 		return trainingScenarioService.getAllTrainingScenarioTitles();
 	}
 

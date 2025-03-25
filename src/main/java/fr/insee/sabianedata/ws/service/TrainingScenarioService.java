@@ -29,7 +29,7 @@ public class TrainingScenarioService {
 	}
 
 
-	public List<String> getAllTrainingScenarioTitles() {
-		return trainingScenarioRepository.getTrainingScenarioIds();
+	public List<TrainingScenario> getAllTrainingScenarioTitles() {
+		return trainingScenarioRepository.getTrainingScenarioIdsAndType();
 	}
 }

@@ -15,6 +15,7 @@ import fr.insee.sabianedata.ws.service.ExtractionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Component;
 import org.springframework.util.FileSystemUtils;
@@ -41,6 +42,9 @@ public class InMemoryTrainingScenarioRepository implements TrainingScenarioRepos
 	private final Map<String, TrainingScenario> scenarioMap = new HashMap<>();
 	private final ExtractionService extractionService;
 
+	@Value("${application.temp-folder}")
+	String tempFolderPath;
+
 	private File tempFolder;
 	private File tempScenariiFolder;
 	private final ObjectMapper objectMapper = new ObjectMapper();
@@ -66,22 +70,55 @@ public class InMemoryTrainingScenarioRepository implements TrainingScenarioRepos
 		log.debug("Clean-up result : {}", result);
 	}
 
-
+	/**
+	 * Prepares a temporary folder structure to hold scenarii files by:
+	 * <ul>
+	 *   <li>Creating a base temp folder if it doesn't exist</li>
+	 *   <li>Creating a "scenarii" subfolder within the temp folder</li>
+	 *   <li>Verifying that the scenarii folder resides within the temp folder (to prevent symlink or directory traversal attacks)</li>
+	 *   <li>Copying scenarii resources from the classpath into the temporary scenarii folder</li>
+	 * </ul>
+	 *
+	 * @throws IOException if any folder cannot be created, is not writable,
+	 *                     if a symlink/directory traversal issue is detected,
+	 *                     or if classpath scenarii resources are missing
+	 */
 	private void setupTempFolders() throws IOException {
-		tempFolder = Files.createTempDirectory("folder-").toFile();
-		tempScenariiFolder = new File(tempFolder, "scenarii");
+		tempFolder = new File(tempFolderPath);
 
-		if (!tempScenariiFolder.mkdirs()) {
+		// Ensure the base temp folder exists and is writable
+		if (!tempFolder.exists() && !tempFolder.mkdir()) {
+			throw new IOException("Could not create temp folder: " + tempFolder);
+		}
+		if (!tempFolder.isDirectory() || !tempFolder.canWrite()) {
+			throw new IOException("Configured temp folder is not writable: " + tempFolder);
+		}
+
+		// Create the scenarii subfolder inside the temp folder
+		tempScenariiFolder = new File(tempFolder, "scenarii");
+		if (!tempScenariiFolder.exists() && !tempScenariiFolder.mkdirs()) {
 			log.error("Couldn't create temporary scenarii folder.");
 			throw new IOException("Failed to create temporary scenarii folder.");
 		}
 
+		// Resolve the canonical (real) paths to detect symlink attacks
+		Path realBasePath = tempFolder.toPath().toRealPath(); // resolves symlinks in temp folder
+		Path scenariiPath = tempScenariiFolder.toPath().toRealPath(); // resolves symlinks in scenarii subfolder
+
+		// Ensure the scenarii folder is truly a subdirectory of the base temp folder
+		// This prevents path tricks or symlink-based attacks that could redirect outside of temp
+		if (!scenariiPath.startsWith(realBasePath)) {
+			throw new IOException("Potential directory traversal or symlink attack.");
+		}
+
+		// Load scenarii files from the classpath
 		File scenariosFolder = resourceLoader.getResource("classpath:scenarii").getFile();
 		if (!scenariosFolder.exists()) {
 			log.error("Scenarii folder not found in classpath.");
 			throw new IOException("Scenarii folder not found in classpath.");
 		}
 
+		// Safely copy classpath scenarii files into the validated temp/scenarii folder
 		FileUtils.copyDirectory(scenariosFolder, tempScenariiFolder);
 	}
 
@@ -112,6 +149,10 @@ public class InMemoryTrainingScenarioRepository implements TrainingScenarioRepos
 	private TrainingScenario createTrainingScenario(File scenarioDirectory) throws Exception {
 		if (scenarioDirectory == null) {
 			throw new IllegalArgumentException("Scenario directory cannot be null");
+		}
+
+		if (!scenarioDirectory.getCanonicalPath().startsWith(tempScenariiFolder.getCanonicalPath())) {
+			throw new SecurityException("Scenario directory is outside allowed base path.");
 		}
 
 		log.info("creating scenario from {}", scenarioDirectory.getName());
@@ -252,8 +293,9 @@ public class InMemoryTrainingScenarioRepository implements TrainingScenarioRepos
 	}
 
 	@Override
-	public List<String> getTrainingScenarioIds() {
-		return scenarioMap.keySet().stream().toList();
+	public List<TrainingScenario> getTrainingScenarioIdsAndType() {
+		return scenarioMap.values().stream().map(scenario -> new TrainingScenario(null, scenario.getType(),
+				scenario.getLabel())).toList();
 	}
 }
 

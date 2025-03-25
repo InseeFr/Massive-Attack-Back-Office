@@ -2,6 +2,7 @@ package fr.insee.sabianedata.ws.controller;
 
 import fr.insee.sabianedata.ws.model.ResponseModel;
 import fr.insee.sabianedata.ws.model.massive_attack.OrganisationUnitDto;
+import fr.insee.sabianedata.ws.model.massive_attack.TrainingScenario;
 import fr.insee.sabianedata.ws.model.pearl.Campaign;
 import fr.insee.sabianedata.ws.service.MassiveAttackService;
 import fr.insee.sabianedata.ws.service.PearlApiService;
@@ -34,9 +35,9 @@ public class MassiveAttackController {
 
 	@Operation(summary = "Return list of available training courses")
 	@GetMapping("training-course-scenario")
-	public ResponseEntity<List<String>> getTrainingScenariiTitles() {
+	public ResponseEntity<List<TrainingScenario>> getTrainingScenariiTitles() {
 		try {
-			List<String> scenarii = massiveAttackService.getTrainingScenariosTitles();
+			List<TrainingScenario> scenarii = massiveAttackService.getTrainingScenariosTitles();
 			return new ResponseEntity<>(scenarii, HttpStatus.OK);
 		} catch (Exception e) {
 			log.error("Can't get training scenarii titles");

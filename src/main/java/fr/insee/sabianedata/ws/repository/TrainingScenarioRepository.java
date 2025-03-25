@@ -10,7 +10,7 @@ public interface TrainingScenarioRepository {
 
     Optional<TrainingScenario> getTrainingScenarioById(String trainingScenarioId) throws NotFoundException;
 
-    List<String> getTrainingScenarioIds();
+    List<TrainingScenario> getTrainingScenarioIdsAndType();
 
 }
 
