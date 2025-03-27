@@ -32,7 +32,7 @@ public class TrainingCourseService {
 
 
 	private MassiveCampaign prepareTrainingCourse(MassiveCampaign massiveCampaign, TrainingConfiguration configuration,
-												 TrainingScenario scenario) {
+												  TrainingScenario scenario) {
 		// extract configuration
 		String organisationUnitId = configuration.organisationUnitId();
 		Long referenceDate = configuration.referenceDate();
@@ -70,8 +70,7 @@ public class TrainingCourseService {
 		// 7 : generate pearl survey-units for interviewers
 		// big fancy method dispatching survey-unit to trainees
 		List<MassiveSurveyUnit> dispatchedSurveyUnits =
-				generateSurveyUnits(massiveCampaign.getSurveyUnits(), newCampaignId, referenceDate, organisationUnitId,
-						configuration.trainees(),
+				generateSurveyUnits(massiveCampaign.getSurveyUnits(), newCampaignId, configuration,
 						massiveCampaign.getAssignments(), scenario.getType(), questionnaireIdMapping);
 		massiveCampaign.setSurveyUnits(dispatchedSurveyUnits);
 		// extract assignments after dispatch
@@ -175,9 +174,7 @@ public class TrainingCourseService {
 	 *
 	 * @param surveyUnits            to use as base
 	 * @param campaignId             campaign id
-	 * @param referenceDate          date modification
-	 * @param organisationUnitId     new organisation-unit id
-	 * @param trainees               trainees for the training session
+	 * @param configuration          date modification, new organisation-unit id,trainees for the training session
 	 * @param assignments            initial assignments (for MANAGER case)
 	 * @param type                   MANAGER or INTERVIEWER
 	 * @param questionnaireIdMapping map linking initial questionnaire ids to generated ids
@@ -186,15 +183,16 @@ public class TrainingCourseService {
 	private List<MassiveSurveyUnit> generateSurveyUnits(
 			List<MassiveSurveyUnit> surveyUnits,
 			String campaignId,
-			Long referenceDate,
-			String organisationUnitId,
-			List<String> trainees, List<Assignment> assignments,
-			ScenarioType type, HashMap<String, String> questionnaireIdMapping) {
+			TrainingConfiguration configuration,
+			List<Assignment> assignments,
 
+			ScenarioType type, HashMap<String, String> questionnaireIdMapping) {
+		String organisationUnitId = configuration.organisationUnitId();
+		Long referenceDate = configuration.referenceDate();
 
 		return switch (type) {
 			// for each trainee => dispatch each TrainingCourse Survey-unit
-			case INTERVIEWER -> trainees.stream()
+			case INTERVIEWER -> configuration.trainees().stream()
 					.flatMap(interviewerId -> surveyUnits.stream()
 							.map(surveyUnit -> {
 										String questId = surveyUnit.getQueenSurveyUnit().getQuestionnaireId();

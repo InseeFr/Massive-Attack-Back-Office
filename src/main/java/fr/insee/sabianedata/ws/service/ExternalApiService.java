@@ -31,7 +31,7 @@ public class ExternalApiService {
 
         boolean pearlCampaignSuccess = false;
         boolean pearlSurveyUnitSuccess = false;
-        boolean assignementSuccess = false;
+        boolean assignmentSuccess = false;
 
         log.info("Trying to post pearl campaign");
         try {
@@ -56,14 +56,14 @@ public class ExternalApiService {
         log.info("Trying to post {} assignments", trainingCourse.getAssignments().size());
         try {
             pearlApiService.postAssignmentsToApi(request, trainingCourse.getAssignments());
-            assignementSuccess = true;
+            assignmentSuccess = true;
         } catch (Exception e) {
             log.error("Error during creation of assignments");
             log.error(e.getMessage());
         }
-        boolean pearlSuccess = pearlCampaignSuccess && pearlSurveyUnitSuccess && assignementSuccess;
-        String pearlMessage = String.format("Campaign : %b, SurveyUnits: %b, Assignements: %b",
-                pearlCampaignSuccess, pearlSurveyUnitSuccess, assignementSuccess);
+        boolean pearlSuccess = pearlCampaignSuccess && pearlSurveyUnitSuccess && assignmentSuccess;
+        String pearlMessage = String.format("Campaign : %b, SurveyUnits: %b, Assignments: %b",
+                pearlCampaignSuccess, pearlSurveyUnitSuccess, assignmentSuccess);
         log.info(pearlMessage);
 
         // POST queen entities

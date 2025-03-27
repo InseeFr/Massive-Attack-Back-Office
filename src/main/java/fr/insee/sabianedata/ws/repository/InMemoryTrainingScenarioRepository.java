@@ -1,6 +1,7 @@
 package fr.insee.sabianedata.ws.repository;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import fr.insee.sabianedata.ws.controller.exception.TrainingScenarioLoadingException;
 import fr.insee.sabianedata.ws.model.massive_attack.MassiveCampaign;
 import fr.insee.sabianedata.ws.model.massive_attack.MassiveSurveyUnit;
 import fr.insee.sabianedata.ws.model.massive_attack.TrainingScenario;
@@ -163,7 +164,7 @@ public class InMemoryTrainingScenarioRepository implements TrainingScenarioRepos
 			trainingScenario = objectMapper.readValue(inputStream, TrainingScenario.class);
 		} catch (IOException e) {
 			log.warn("Unable to load TrainingScenario from {}", infoFile, e);
-			throw new Exception("Unable to load TrainingScenario");
+			throw new TrainingScenarioLoadingException("Unable to load TrainingScenario",e);
 		}
 
 		// for each Scenario sub-folder
@@ -181,7 +182,7 @@ public class InMemoryTrainingScenarioRepository implements TrainingScenarioRepos
 
 		} catch (RuntimeException e) {
 			log.warn("Error when processing campaigns", e);
-			throw new Exception("Error when processing scenario " + scenarioDirectory.getAbsolutePath());
+			throw new TrainingScenarioLoadingException("Error when processing scenario " + scenarioDirectory.getAbsolutePath(),e);
 		}
 
 		return trainingScenario;
@@ -216,7 +217,7 @@ public class InMemoryTrainingScenarioRepository implements TrainingScenarioRepos
 			return extractionService.extractPearlCampaign(pearlSourceFile);
 		} catch (Exception e) {
 			log.warn("Error when extracting campaign from {}", pearlSourceFile.getAbsolutePath(), e);
-			throw new RuntimeException("Campaign extraction failed", e);
+			throw new TrainingScenarioLoadingException("Campaign extraction failed", e);
 		}
 	}
 
@@ -225,7 +226,7 @@ public class InMemoryTrainingScenarioRepository implements TrainingScenarioRepos
 			return extractionService.extractPearlSurveyUnits(pearlFodsInput);
 		} catch (Exception e) {
 			log.error("Error with SU extraction in {}", pearlFodsInput.getAbsolutePath());
-			throw new RuntimeException("Pearl survey-units extraction failed", e);
+			throw new TrainingScenarioLoadingException("Pearl survey-units extraction failed", e);
 		}
 	}
 
@@ -233,7 +234,7 @@ public class InMemoryTrainingScenarioRepository implements TrainingScenarioRepos
 		try {
 			return extractionService.extractAssignments(pearlFodsInput);
 		} catch (Exception e) {
-			throw new RuntimeException("Pearl assignments extraction failed", e);
+			throw new TrainingScenarioLoadingException("Pearl assignments extraction failed", e);
 		}
 	}
 
@@ -250,7 +251,7 @@ public class InMemoryTrainingScenarioRepository implements TrainingScenarioRepos
 			return queenCampaign;
 		} catch (Exception e) {
 			log.warn("Error when extracting queen campaign from {}", queenFolder.toAbsolutePath());
-			throw new RuntimeException("Queen Campaign extraction failed", e);
+			throw new TrainingScenarioLoadingException("Queen Campaign extraction failed", e);
 		}
 	}
 
@@ -259,7 +260,7 @@ public class InMemoryTrainingScenarioRepository implements TrainingScenarioRepos
 			return extractionService.extractQueenSurveyUnits(queenSourceFile,
 					queenFolder);
 		} catch (Exception e) {
-			throw new RuntimeException("Queen survey-units extraction failed", e);
+			throw new TrainingScenarioLoadingException("Queen survey-units extraction failed", e);
 		}
 
 	}
