@@ -10,7 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -44,13 +44,13 @@ public class MassiveAttackService {
 	 * Main method applying a configuration to a TrainingCourse
 	 *
 	 * @param scenarioId         scenario Id
-	 * @param campaignLabel      label to be applied
+	 * @param scenarioLabel      label to be applied
 	 * @param organisationUnitId survey-units OUid
 	 * @param request            request
 	 * @param referenceDate      reference date for opening status of campaign
 	 * @param trainees           list of trainees
 	 */
-	public ResponseModel generateTrainingScenario(String scenarioId, String campaignLabel,
+	public ResponseModel generateTrainingScenario(String scenarioId, String scenarioLabel,
 												  String organisationUnitId,
 												  HttpServletRequest request, Long referenceDate,
 												  List<String> trainees) {
@@ -69,12 +69,11 @@ public class MassiveAttackService {
 			return new ResponseModel(false, "Error when checking users");
 		}
 
-		TrainingConfiguration trainingConfiguration = new TrainingConfiguration(campaignLabel, organisationUnitId,
+		TrainingConfiguration trainingConfiguration = new TrainingConfiguration(scenarioLabel, organisationUnitId,
 				referenceDate, trainees, scenario.getLabel());
 
 		List<MassiveCampaign> trainingCourse = trainingCourseService.generateTrainingCourse(scenario,
 				trainingConfiguration);
-
 
 		if (trainingCourse.contains(null)) {
 			rollBackOnFail(trainingCourse.stream().filter(Objects::nonNull).map(MassiveCampaign::getId)

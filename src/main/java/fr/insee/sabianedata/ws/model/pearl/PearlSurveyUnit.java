@@ -1,19 +1,18 @@
 package fr.insee.sabianedata.ws.model.pearl;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @JacksonXmlRootElement(localName = "SurveyUnit")
 @NoArgsConstructor
@@ -27,7 +26,7 @@ public class PearlSurveyUnit {
     @JacksonXmlProperty(localName = "Id")
     private String displayName;
     @JacksonXmlElementWrapper(localName = "Persons")
-    private ArrayList<Person> persons;
+    private List<Person> persons;
     @JacksonXmlProperty(localName = "Address")
     private AdressDto address;
     @JacksonXmlProperty(localName = "OrganizationUnitId")
@@ -46,7 +45,7 @@ public class PearlSurveyUnit {
     @JacksonXmlProperty(localName = "ContactOutcome")
     private ContactOutcomeDto contactOutcome;
     @JacksonXmlProperty(localName = "ContactAttempts")
-    private List<ContactAttemptDto> contactAttempts = new ArrayList<>();
+    private List<ContactAttemptDto> contactAttempts = List.of();
     @JacksonXmlProperty(localName = "States")
     private List<SurveyUnitStateDto> states = new ArrayList<>();
     @JacksonXmlProperty(localName = "SurveyUnitIdentification")
@@ -57,8 +56,8 @@ public class PearlSurveyUnit {
 
     public void cleanAttributes() {
         this.states = states == null ? new ArrayList<>() : states;
-        this.contactAttempts = contactAttempts == null ? new ArrayList<>() : contactAttempts;
-        this.comments = comment == null ? new ArrayList<>() : List.of(new CommentDto(CommentType.INTERVIEWER, comment));
+        this.contactAttempts = contactAttempts == null ? List.of() : contactAttempts;
+        this.comments = comment == null ? List.of() : List.of(new CommentDto(CommentType.INTERVIEWER, comment));
     }
 
     public PearlSurveyUnit(PearlSurveyUnit su) {
@@ -72,10 +71,10 @@ public class PearlSurveyUnit {
         this.campaign = su.getCampaign();
         this.sampleIdentifiers = su.getSampleIdentifiers();
         this.comment = su.getComment();
-        this.comments = comment == null ? new ArrayList<>() : List.of(new CommentDto(CommentType.INTERVIEWER, comment));
+        this.comments = comment == null ? List.of() : List.of(new CommentDto(CommentType.INTERVIEWER, comment));
         this.contactOutcome = su.getContactOutcome();
         // contactAttempts are added later, for date twisting
-        this.contactAttempts = new ArrayList<>();
+        this.contactAttempts = List.of();
         this.states = new ArrayList<>();
         this.identification = su.getIdentification();
         this.move = su.getMove();
@@ -86,7 +85,7 @@ public class PearlSurveyUnit {
         try {
             return objectMapper.writeValueAsString(this);
         } catch (JsonProcessingException e) {
-            log.warn("Coudn't stringify survey-unit", e);
+            log.warn("Couldn't stringify survey-unit", e);
         }
         return "";
     }

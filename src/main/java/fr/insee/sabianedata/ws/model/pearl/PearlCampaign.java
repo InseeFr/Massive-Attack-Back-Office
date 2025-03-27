@@ -40,4 +40,6 @@ public class PearlCampaign {
     @JacksonXmlElementWrapper(localName = "Referents")
     private List<Referent> referents;
 
+    private final boolean sensitivity = false;
+
 }

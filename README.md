@@ -53,6 +53,7 @@ Before starting up the tomcat server, some configurations are needed :
  
 
 #### External Properties file
+!!! => To be migrated to embedded Tomcat and env-var configuration  
 Create sabdatab.properties near war file and complete the following properties:  
 ```properties  
 #Profile configuration

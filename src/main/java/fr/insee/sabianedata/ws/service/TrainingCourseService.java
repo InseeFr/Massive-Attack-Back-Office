@@ -2,7 +2,10 @@ package fr.insee.sabianedata.ws.service;
 
 import fr.insee.sabianedata.ws.model.massive_attack.*;
 import fr.insee.sabianedata.ws.model.pearl.*;
-import fr.insee.sabianedata.ws.model.queen.*;
+import fr.insee.sabianedata.ws.model.queen.QueenSurveyUnit;
+import fr.insee.sabianedata.ws.model.queen.QuestionnaireModel;
+import fr.insee.sabianedata.ws.model.queen.QuestionnaireModelDto;
+import fr.insee.sabianedata.ws.model.queen.SurveyUnit;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -16,9 +19,6 @@ public class TrainingCourseService {
 	public List<MassiveCampaign> generateTrainingCourse(TrainingScenario scenario,
 														TrainingConfiguration configuration) {
 
-		// Pour chaque MA-Campaign : appliquer la configuration
-
-
 		return scenario.getCampaigns().stream().map(camp -> {
 			try {
 				return prepareTrainingCourse(camp, configuration, scenario);
@@ -31,26 +31,26 @@ public class TrainingCourseService {
 	}
 
 
-	private MassiveCampaign prepareTrainingCourse(MassiveCampaign maCampaign, TrainingConfiguration configuration,
+	private MassiveCampaign prepareTrainingCourse(MassiveCampaign massiveCampaign, TrainingConfiguration configuration,
 												 TrainingScenario scenario) {
 		// extract configuration
 		String organisationUnitId = configuration.organisationUnitId();
 		Long referenceDate = configuration.referenceDate();
 
 		// 1 : update campaigns Label and make unique campaignId -> campaign.id_I/M_OU_date_scenarLabel
-		String newCampaignId = String.join("_", maCampaign.getId(), scenario.getType().toString().substring(0, 1),
-				organisationUnitId, referenceDate.toString(), scenario.getLabel());
-		maCampaign.updateCampaignsId(newCampaignId);
-		maCampaign.updateLabel(configuration.scenarioLabel());
+		String newCampaignId = String.join("_", massiveCampaign.getId(), scenario.getType().toString().substring(0, 1),
+				organisationUnitId, referenceDate.toString(), configuration.campaignLabel());
+		massiveCampaign.updateCampaignsId(newCampaignId);
+		massiveCampaign.updateLabel(configuration.scenarioLabel());
 
 		// 2 : change visibility with OU in configuration
-		updateVisibilities(maCampaign, referenceDate, organisationUnitId);
+		updateVisibilities(massiveCampaign, referenceDate, organisationUnitId);
 
 
 		// 6 Queen : make unique questionnaireId and map oldQuestId to new questModels
 		HashMap<String, String> questionnaireIdMapping = new HashMap<>();
 		List<QuestionnaireModelDto> newQuestionnaireModels =
-				maCampaign.getQueenCampaign().getQuestionnaireModels().stream().map(qm -> {
+				massiveCampaign.getQueenCampaign().getQuestionnaireModels().stream().map(qm -> {
 					String initQuestionnaireModelId = qm.getIdQuestionnaireModel();
 					String newQuestionnaireModelId = String.join("_",
 							initQuestionnaireModelId,
@@ -64,22 +64,21 @@ public class TrainingCourseService {
 		List<String> newQuestionnaireIds = newQuestionnaireModels.stream()
 				.map(QuestionnaireModel::getIdQuestionnaireModel).toList();
 
-		maCampaign.getQueenCampaign().setQuestionnaireIds(newQuestionnaireIds);
+		massiveCampaign.getQueenCampaign().setQuestionnaireIds(newQuestionnaireIds);
 
 
 		// 7 : generate pearl survey-units for interviewers
 		// big fancy method dispatching survey-unit to trainees
 		List<MassiveSurveyUnit> dispatchedSurveyUnits =
-				generateSurveyUnits(maCampaign.getSurveyUnits(), newCampaignId, referenceDate, organisationUnitId,
+				generateSurveyUnits(massiveCampaign.getSurveyUnits(), newCampaignId, referenceDate, organisationUnitId,
 						configuration.trainees(),
-						maCampaign.getAssignments(), scenario.getType(), questionnaireIdMapping);
-
-
+						massiveCampaign.getAssignments(), scenario.getType(), questionnaireIdMapping);
+		massiveCampaign.setSurveyUnits(dispatchedSurveyUnits);
 		// extract assignments after dispatch
-		List<Assignment> distributedAssignements = extractDistributedAssignements(dispatchedSurveyUnits);
-		maCampaign.setAssignments(distributedAssignements);
+		List<Assignment> distributedAssignments = extractDistributedAssignements(dispatchedSurveyUnits);
+		massiveCampaign.setAssignments(distributedAssignments);
 
-		return maCampaign;
+		return massiveCampaign;
 
 	}
 
@@ -109,7 +108,6 @@ public class TrainingCourseService {
 											   String newQuestionnaireId) {
 		// to keep same id in  pearl and queen APIs
 		String newId = UUID.randomUUID().toString();
-
 		PearlSurveyUnit pearlSurveyUnit = updatePearlSurveyUnit(surveyUnit.getPearlSurveyUnit(), newId, interviewerId,
 				campaignId, organisationUnitId, referenceDate);
 		QueenSurveyUnit queenSurveyUnit = updateQueenSurveyUnit(surveyUnit.getQueenSurveyUnit(), newId,

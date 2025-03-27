@@ -2,8 +2,7 @@ package fr.insee.sabianedata.ws.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 
-import javax.servlet.http.HttpServletRequest;
-
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
