@@ -20,7 +20,7 @@ public class NoSecurityConfiguration  {
 						.anyRequest().permitAll()
 				)
 				.headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
-				.csrf(AbstractHttpConfigurer::disable);
+				.csrf(AbstractHttpConfigurer::disable);// NOSONAR - CSRF disabled intentionally in no-auth mode
 		return http.build();
 	}
 
