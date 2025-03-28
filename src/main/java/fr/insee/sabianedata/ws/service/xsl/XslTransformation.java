@@ -24,12 +24,12 @@ public class XslTransformation {
         tFactory.setURIResolver(new ClasspathResourceURIResolver());
     }
 
-    private void xslTransform(Transformer transformer, InputStream xmlInput, OutputStream xmlOutput) throws Exception {
+    private void xslTransform(Transformer transformer, InputStream xmlInput, OutputStream xmlOutput) throws TransformerException {
         try {
             transformer.transform(new StreamSource(xmlInput), new StreamResult(xmlOutput));
         } catch (Exception e) {
             log.error("Error during XSL transformation", e);
-            throw new Exception("Transformation failed", e);
+            throw new TransformerException("Transformation failed", e);
         }
     }
 
