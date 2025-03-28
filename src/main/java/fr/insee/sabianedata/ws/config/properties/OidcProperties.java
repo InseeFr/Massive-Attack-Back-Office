@@ -1,4 +1,4 @@
-package fr.insee.sabianedata.ws.config;
+package fr.insee.sabianedata.ws.config.properties;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 

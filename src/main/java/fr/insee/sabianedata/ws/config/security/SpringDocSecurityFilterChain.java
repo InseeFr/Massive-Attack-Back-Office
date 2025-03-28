@@ -1,4 +1,4 @@
-package fr.insee.sabianedata.ws.config;
+package fr.insee.sabianedata.ws.config.security;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Configuration;

@@ -9,7 +9,6 @@ import fr.insee.sabianedata.ws.service.PearlApiService;
 import fr.insee.sabianedata.ws.service.UtilsService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -48,7 +47,7 @@ public class MassiveAttackController {
 
 	@Operation(summary = "Create a training course")
 	@PostMapping(value = "training-course", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseModel> generateTrainingCourse(HttpServletRequest request, @RequestParam(value =
+	public ResponseEntity<ResponseModel> generateTrainingCourse(@RequestParam(value =
 			"campaignId") String scenarioId, @RequestParam(value = "campaignLabel") String scenarioLabel,
 																@RequestParam(value = "organisationUnitId") String organisationUnitId, @RequestParam(value = "dateReference") Long dateReference, @RequestParam(value = "interviewers", defaultValue = "") List<String> trainees) {
 		String encodedScenarioId = URLEncoder.encode(scenarioId, StandardCharsets.UTF_8);
@@ -58,15 +57,15 @@ public class MassiveAttackController {
 		log.info("USER : {} | create scenario {}  -> {}", utilsService.getRequesterId(), encodedScenarioId,
 				scenarioLabel);
 		ResponseModel result = massiveAttackService.generateTrainingScenario(encodedScenarioId, encodedScenarioLabel,
-				encodedOrganisationUnitId, request, dateReference, trainees);
+				encodedOrganisationUnitId, dateReference, trainees);
 		return result.isSuccess() ? ResponseEntity.ok().body(result) : ResponseEntity.badRequest().body(result);
 	}
 
 	@Operation(summary = "Return user OrganisationalUnit")
 	@GetMapping(value = "user/organisationUnit", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<OrganisationUnitDto> getUserOrganisationalUnit(HttpServletRequest request) {
+	public ResponseEntity<OrganisationUnitDto> getUserOrganisationalUnit() {
 		log.info("USER : {} | get organization unit ", utilsService.getRequesterId());
-		OrganisationUnitDto ou = pearlApiService.getUserOrganizationUnit(request);
+		OrganisationUnitDto ou = pearlApiService.getUserOrganizationUnit();
 		if (ou == null) {
 			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Can't find user organisationUnit");
 		}
@@ -76,17 +75,17 @@ public class MassiveAttackController {
 
 	@Operation(summary = "Delete a campaign")
 	@DeleteMapping(path = "campaign/{id}")
-	public ResponseEntity<String> deleteCampaignById(HttpServletRequest request,
+	public ResponseEntity<String> deleteCampaignById(
 													 @PathVariable(value = "id") String campaignId) {
 		log.warn("USER : {} | delete campaign {}", utilsService.getRequesterId(), campaignId);
-		return massiveAttackService.deleteCampaign(request, campaignId);
+		return massiveAttackService.deleteCampaign(campaignId);
 	}
 
 	@Operation(summary = "Get list of training courses")
 	@GetMapping(path = "/training-courses")
-	public ResponseEntity<List<Campaign>> getTrainingSessions(HttpServletRequest request, @RequestParam(value =
+	public ResponseEntity<List<Campaign>> getTrainingSessions(@RequestParam(value =
 			"admin", defaultValue = "false") boolean admin) {
-		List<Campaign> pearlCampaigns = pearlApiService.getCampaigns(request, admin);
+		List<Campaign> pearlCampaigns = pearlApiService.getCampaigns(admin);
 
 		log.info("USER: {} | get campaigns ", utilsService.getRequesterId());
 		return new ResponseEntity<>(pearlCampaigns, HttpStatus.OK);
@@ -94,9 +93,9 @@ public class MassiveAttackController {
 
 	@Operation(summary = "Return all OrganisationalUnits")
 	@GetMapping(value = "organisation-units", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<List<OrganisationUnitDto>> getAllOrganisationalUnits(HttpServletRequest request) {
+	public ResponseEntity<List<OrganisationUnitDto>> getAllOrganisationalUnits() {
 		log.info("USER : {} | get organization units ", utilsService.getRequesterId());
-		List<OrganisationUnitDto> ous = pearlApiService.getAllOrganizationUnits(request);
+		List<OrganisationUnitDto> ous = pearlApiService.getAllOrganizationUnits();
 		if (ous.isEmpty()) {
 			return ResponseEntity.notFound().build();
 		}

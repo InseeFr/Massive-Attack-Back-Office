@@ -1,6 +1,7 @@
 package fr.insee.sabianedata.ws.repository;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import fr.insee.sabianedata.ws.config.properties.ApplicationProperties;
 import fr.insee.sabianedata.ws.controller.exception.TrainingScenarioLoadingException;
 import fr.insee.sabianedata.ws.model.massive_attack.MassiveCampaign;
 import fr.insee.sabianedata.ws.model.massive_attack.MassiveSurveyUnit;
@@ -16,7 +17,6 @@ import fr.insee.sabianedata.ws.service.ExtractionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Component;
 import org.springframework.util.FileSystemUtils;
@@ -42,9 +42,7 @@ public class InMemoryTrainingScenarioRepository implements TrainingScenarioRepos
 
 	private final Map<String, TrainingScenario> scenarioMap = new HashMap<>();
 	private final ExtractionService extractionService;
-
-	@Value("${application.temp-folder}")
-	String tempFolderPath;
+	private final ApplicationProperties applicationProperties;
 
 	private File tempFolder;
 	private File tempScenariiFolder;
@@ -85,7 +83,7 @@ public class InMemoryTrainingScenarioRepository implements TrainingScenarioRepos
 	 *                     or if classpath scenarii resources are missing
 	 */
 	private void setupTempFolders() throws IOException {
-		tempFolder = new File(tempFolderPath);
+		tempFolder = new File(applicationProperties.tempFolder());
 
 		// Ensure the base temp folder exists and is writable
 		if (!tempFolder.exists() && !tempFolder.mkdir()) {

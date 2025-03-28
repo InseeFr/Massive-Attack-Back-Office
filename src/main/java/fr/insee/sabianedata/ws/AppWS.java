@@ -3,6 +3,7 @@ package fr.insee.sabianedata.ws;
 import java.util.Arrays;
 import java.util.stream.StreamSupport;
 
+import fr.insee.sabianedata.ws.config.BearerAuthInterceptor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -51,8 +52,8 @@ public class AppWS extends SpringBootServletInitializer {
         StreamSupport.stream(sources.spliterator(), false).filter(EnumerablePropertySource.class::isInstance)
                 .map(ps -> ((EnumerablePropertySource<?>) ps).getPropertyNames()).flatMap(Arrays::stream).distinct()
                 .filter(prop -> !(prop.contains("credentials") || prop.contains("password")))
-                .filter(prop -> prop.startsWith("fr.insee") || prop.startsWith("logging") || prop.startsWith("spring")
-                        || prop.startsWith("keycloak"))
+                .filter(prop -> prop.startsWith("feature") || prop.startsWith("logging") || prop.startsWith("spring")
+                        || prop.startsWith("application"))
                 .sorted().forEach(prop -> log.info("{}: {}", prop, env.getProperty(prop)));
         log.info("===========================================================================");
         log.info("Available CPU : {}", Runtime.getRuntime().availableProcessors());
@@ -67,8 +68,10 @@ public class AppWS extends SpringBootServletInitializer {
     }
 
     @Bean
-    public RestTemplate restTemplate() {
-        return new RestTemplate();
+    public RestTemplate restTemplate(BearerAuthInterceptor bearerAuthInterceptor) {
+        RestTemplate restTemplate = new RestTemplate();
+        restTemplate.getInterceptors().add(bearerAuthInterceptor);
+        return restTemplate;
     }
 
 }

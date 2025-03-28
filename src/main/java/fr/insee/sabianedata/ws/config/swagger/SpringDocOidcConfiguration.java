@@ -1,6 +1,6 @@
 package fr.insee.sabianedata.ws.config.swagger;
 
-import fr.insee.sabianedata.ws.config.OidcProperties;
+import fr.insee.sabianedata.ws.config.properties.OidcProperties;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.security.*;
