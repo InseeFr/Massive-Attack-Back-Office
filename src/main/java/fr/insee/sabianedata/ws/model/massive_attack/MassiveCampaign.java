@@ -34,4 +34,11 @@ public class MassiveCampaign {
         pearlCampaign.setCampaignLabel(newLabel);
         queenCampaign.setLabel(newLabel);
     }
+
+    public MassiveCampaign deepClone(){
+        MassiveCampaign clone= new MassiveCampaign();
+        clone.setPearlCampaign(pearlCampaign.deepClone());
+        clone.setQueenCampaign(queenCampaign.deepClone());
+        return clone;
+    }
 }

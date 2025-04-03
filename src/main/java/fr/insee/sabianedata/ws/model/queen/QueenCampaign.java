@@ -47,4 +47,13 @@ public class QueenCampaign {
                 ", metadata=" + metadata +
                 '}';
     }
+
+    public QueenCampaign deepClone(){
+        QueenCampaign clone = new QueenCampaign();
+        clone.setId(id);
+        clone.setLabel(label);
+        clone.setQuestionnaireIds(questionnaireIds);
+        return clone;
+    }
+
 }

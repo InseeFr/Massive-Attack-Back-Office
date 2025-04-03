@@ -40,4 +40,18 @@ public class PearlCampaign {
     @JacksonXmlElementWrapper(localName = "Referents")
     private List<Referent> referents;
 
+    public PearlCampaign deepClone(){
+        PearlCampaign clone = new PearlCampaign();
+        clone.setCampaign(campaign);
+        clone.setCampaignLabel(campaignLabel);
+        clone.setEmail(email);
+        clone.setContactAttemptConfiguration(contactAttemptConfiguration);
+        clone.setContactOutcomeConfiguration(contactOutcomeConfiguration);
+        clone.setIdentificationConfiguration(identificationConfiguration);
+        clone.setReferents(referents);
+        clone.setVisibilities(visibilities.stream().map(Visibility::new).toList());
+
+        return clone;
+    }
+
 }

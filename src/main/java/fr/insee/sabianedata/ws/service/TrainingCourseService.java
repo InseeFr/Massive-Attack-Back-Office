@@ -37,7 +37,7 @@ public class TrainingCourseService {
 		String organisationUnitId = configuration.organisationUnitId();
 		Long referenceDate = configuration.referenceDate();
 
-		MassiveCampaign generatedCampaign = new MassiveCampaign();
+		MassiveCampaign generatedCampaign =templateCampaign.deepClone();
 
 		// 1 : update campaigns Label and make unique campaignId -> campaign.id_I/M_OU_date_scenarLabel
 		String newCampaignId = String.join("_", templateCampaign.getId(), scenario.getType().toString().substring(0, 1),
