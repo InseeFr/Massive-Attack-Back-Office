@@ -53,6 +53,9 @@ public class QueenCampaign {
         clone.setId(id);
         clone.setLabel(label);
         clone.setQuestionnaireIds(questionnaireIds);
+        clone.setNomenclatures(nomenclatures);
+        clone.setQuestionnaireModels(questionnaireModels);
+        clone.setMetadata(metadata);
         return clone;
     }
 
