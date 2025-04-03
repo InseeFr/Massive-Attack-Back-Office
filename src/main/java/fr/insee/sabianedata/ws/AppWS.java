@@ -1,6 +1,7 @@
 package fr.insee.sabianedata.ws;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.stream.StreamSupport;
 
 import fr.insee.sabianedata.ws.config.BearerAuthInterceptor;
@@ -18,6 +19,7 @@ import org.springframework.core.env.AbstractEnvironment;
 import org.springframework.core.env.EnumerablePropertySource;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.MutablePropertySources;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
 
 @SpringBootApplication
@@ -71,6 +73,11 @@ public class AppWS extends SpringBootServletInitializer {
     public RestTemplate restTemplate(BearerAuthInterceptor bearerAuthInterceptor) {
         RestTemplate restTemplate = new RestTemplate();
         restTemplate.getInterceptors().add(bearerAuthInterceptor);
+
+        restTemplate.setMessageConverters(List.of(
+                new MappingJackson2HttpMessageConverter()
+        ));
+
         return restTemplate;
     }
 
