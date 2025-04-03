@@ -3,6 +3,7 @@ package fr.insee.sabianedata.ws.model.queen;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.insee.sabianedata.ws.utils.JsonFileToJsonNode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.io.File;
@@ -10,6 +11,7 @@ import java.nio.file.Path;
 
 @Getter
 @Setter
+@NoArgsConstructor
 public class QuestionnaireModelDto extends QuestionnaireModel {
 
 	private JsonNode value;
@@ -25,6 +27,17 @@ public class QuestionnaireModelDto extends QuestionnaireModel {
 
 		File questionnaireFile = questionnaireFilePath.toFile();
 		this.value = JsonFileToJsonNode.getJsonNodeFromFile(questionnaireFile);
+	}
+
+	public QuestionnaireModelDto deepClone(){
+		QuestionnaireModelDto clone = new QuestionnaireModelDto();
+		clone.setIdQuestionnaireModel(this.getIdQuestionnaireModel());
+		clone.setLabel(this.getLabel());
+		clone.setValue(this.getValue());
+		clone.setCampaignId(this.getCampaignId());
+
+		return clone;
+
 	}
 
 }

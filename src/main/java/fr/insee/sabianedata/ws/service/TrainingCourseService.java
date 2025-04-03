@@ -31,53 +31,57 @@ public class TrainingCourseService {
 	}
 
 
-	private MassiveCampaign prepareTrainingCourse(MassiveCampaign massiveCampaign, TrainingConfiguration configuration,
+	private MassiveCampaign prepareTrainingCourse(MassiveCampaign templateCampaign, TrainingConfiguration configuration,
 												  TrainingScenario scenario) {
 		// extract configuration
 		String organisationUnitId = configuration.organisationUnitId();
 		Long referenceDate = configuration.referenceDate();
 
+		MassiveCampaign generatedCampaign = new MassiveCampaign();
+
 		// 1 : update campaigns Label and make unique campaignId -> campaign.id_I/M_OU_date_scenarLabel
-		String newCampaignId = String.join("_", massiveCampaign.getId(), scenario.getType().toString().substring(0, 1),
+		String newCampaignId = String.join("_", templateCampaign.getId(), scenario.getType().toString().substring(0, 1),
 				organisationUnitId, referenceDate.toString(), configuration.campaignLabel());
-		massiveCampaign.updateCampaignsId(newCampaignId);
-		massiveCampaign.updateLabel(configuration.scenarioLabel());
+		generatedCampaign.updateCampaignsId(newCampaignId);
+		generatedCampaign.updateLabel(configuration.scenarioLabel());
 
 		// 2 : change visibility with OU in configuration
-		updateVisibilities(massiveCampaign, referenceDate, organisationUnitId);
+		List<Visibility> newVisibilities = updateVisibilities(templateCampaign, referenceDate, organisationUnitId);
+		generatedCampaign.getPearlCampaign().setVisibilities(newVisibilities);
 
 
 		// 6 Queen : make unique questionnaireId and map oldQuestId to new questModels
 		HashMap<String, String> questionnaireIdMapping = new HashMap<>();
 		List<QuestionnaireModelDto> newQuestionnaireModels =
-				massiveCampaign.getQueenCampaign().getQuestionnaireModels().stream().map(qm -> {
+				templateCampaign.getQueenCampaign().getQuestionnaireModels().stream().map(qm -> {
 					String initQuestionnaireModelId = qm.getIdQuestionnaireModel();
 					String newQuestionnaireModelId = String.join("_",
 							initQuestionnaireModelId,
 							organisationUnitId,
 							referenceDate.toString());
 					questionnaireIdMapping.put(initQuestionnaireModelId, newQuestionnaireModelId);
-					qm.setIdQuestionnaireModel(newQuestionnaireModelId);
-					return qm;
+					QuestionnaireModelDto clonedQM = qm.deepClone();
+					clonedQM.setIdQuestionnaireModel(newQuestionnaireModelId);
+					return clonedQM;
 				}).toList();
 
 		List<String> newQuestionnaireIds = newQuestionnaireModels.stream()
 				.map(QuestionnaireModel::getIdQuestionnaireModel).toList();
 
-		massiveCampaign.getQueenCampaign().setQuestionnaireIds(newQuestionnaireIds);
+		generatedCampaign.getQueenCampaign().setQuestionnaireIds(newQuestionnaireIds);
 
 
 		// 7 : generate pearl survey-units for interviewers
 		// big fancy method dispatching survey-unit to trainees
 		List<MassiveSurveyUnit> dispatchedSurveyUnits =
-				generateSurveyUnits(massiveCampaign.getSurveyUnits(), newCampaignId, configuration,
-						massiveCampaign.getAssignments(), scenario.getType(), questionnaireIdMapping);
-		massiveCampaign.setSurveyUnits(dispatchedSurveyUnits);
+				generateSurveyUnits(templateCampaign.getSurveyUnits(), newCampaignId, configuration,
+						templateCampaign.getAssignments(), scenario.getType(), questionnaireIdMapping);
+		generatedCampaign.setSurveyUnits(dispatchedSurveyUnits);
 		// extract assignments after dispatch
 		List<Assignment> distributedAssignments = extractDistributedAssignements(dispatchedSurveyUnits);
-		massiveCampaign.setAssignments(distributedAssignments);
+		generatedCampaign.setAssignments(distributedAssignments);
 
-		return massiveCampaign;
+		return generatedCampaign;
 
 	}
 
@@ -230,11 +234,13 @@ public class TrainingCourseService {
 	}
 
 
-	private void updateVisibilities(MassiveCampaign campaign, Long referenceDate, String organisationUnitId) {
-		campaign.getPearlCampaign().getVisibilities().forEach(visibility -> {
-			visibility.updateDatesWithReferenceDate(referenceDate);
-			visibility.setOrganizationalUnit(organisationUnitId);
-		});
+	private List<Visibility> updateVisibilities(MassiveCampaign campaign, Long referenceDate, String organisationUnitId) {
+		return campaign.getPearlCampaign().getVisibilities().stream()
+				.map(Visibility::new)
+				.peek(visibility -> {
+					visibility.updateDatesWithReferenceDate(referenceDate);
+					visibility.setOrganizationalUnit(organisationUnitId);
+				}).toList();
 	}
 
 }
