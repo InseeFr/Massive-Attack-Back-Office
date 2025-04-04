@@ -12,6 +12,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 
@@ -27,115 +29,98 @@ public class ExternalApiService {
 	private final QueenApiService queenApiService;
 
 	public MassiveCampaign postTrainingCourse(MassiveCampaign trainingCourse) {
+		boolean pearlSuccess = postTrainingCourseToManagementApi(trainingCourse);
+		boolean queenSuccess = postTrainingCourseToQuestionnaireApi(trainingCourse);
+		return pearlSuccess && queenSuccess ? trainingCourse : null;
+	}
 
-		boolean pearlCampaignSuccess = false;
-		boolean pearlSurveyUnitSuccess = false;
-		boolean assignmentSuccess = false;
-
-		log.info("Trying to post pearl campaign");
-		try {
-			pearlApiService.postCampaignToApi(trainingCourse.getPearlCampaign());
-			pearlCampaignSuccess = true;
-		} catch (Exception e) {
-			log.error("Error during creation campaign : {}", trainingCourse.getId());
-			log.error(e.getMessage());
-		}
+	private boolean postTrainingCourseToManagementApi(MassiveCampaign trainingCourse) {
+		boolean pearlCampaignSuccess = runWithErrorLogging(
+				() -> pearlApiService.postCampaignToApi(trainingCourse.getPearlCampaign()),
+				String.format("Error during creation campaign : %s", trainingCourse.getId())
+		);
 
 		List<PearlSurveyUnit> pearlSurveyUnitsToPost =
 				trainingCourse.getSurveyUnits().stream().map(MassiveSurveyUnit::getPearlSurveyUnit).toList();
-		log.info("Trying to post {}  pearl surveyUnits", pearlSurveyUnitsToPost.size());
+		boolean pearlSurveyUnitSuccess = runWithErrorLogging(
+				() -> pearlApiService.postUesToApi(pearlSurveyUnitsToPost),
+				"Error during creation of surveyUnits"
+		);
 
-		try {
-			pearlApiService.postUesToApi(pearlSurveyUnitsToPost);
-			pearlSurveyUnitSuccess = true;
-		} catch (Exception e) {
-			log.error("Error during creation of surveyUnits");
-			log.error(e.getMessage());
-		}
-		log.info("Trying to post {} assignments", trainingCourse.getAssignments().size());
-		try {
-			pearlApiService.postAssignmentsToApi(trainingCourse.getAssignments());
-			assignmentSuccess = true;
-		} catch (Exception e) {
-			log.error("Error during creation of assignments");
-			log.error(e.getMessage());
-		}
-		boolean pearlSuccess = pearlCampaignSuccess && pearlSurveyUnitSuccess && assignmentSuccess;
-		String pearlMessage = String.format("Campaign : %b, SurveyUnits: %b, Assignments: %b",
-				pearlCampaignSuccess, pearlSurveyUnitSuccess, assignmentSuccess);
-		log.info(pearlMessage);
+		boolean assignmentSuccess = runWithErrorLogging(
+				() -> pearlApiService.postAssignmentsToApi(trainingCourse.getAssignments()),
+				"Error during creation of assignments"
+		);
 
-		// POST queen entities
-		long nomenclaturesSuccess;
-		long questionnairesSuccess;
-		long queenSurveyUnitsSuccess;
-		boolean queenCampaignSuccess = false;
+		log.info("Campaign: {}, SurveyUnits: {}, Assignments: {}", pearlCampaignSuccess, pearlSurveyUnitSuccess,
+				assignmentSuccess);
+		return pearlCampaignSuccess && pearlSurveyUnitSuccess && assignmentSuccess;
+
+	}
+
+	private boolean postTrainingCourseToQuestionnaireApi(MassiveCampaign trainingCourse) {
+		// extract main thread context for parallel stream usage
+		var securityContext = SecurityContextHolder.getContext();
+
 
 		log.info("Trying to post {} nomenclatures", trainingCourse.getQueenCampaign().getNomenclatures().size());
-		nomenclaturesSuccess = trainingCourse.getQueenCampaign().getNomenclatures().stream().parallel().filter(n -> {
-			try {
-				queenApiService.postNomenclaturesToApi(n);
-				return true;
-			} catch (Exception e) {
-				log.error("Error during creation of nomenclature : {}", n.getId());
-				log.error(e.getMessage());
-				return false;
-			}
-		}).count();
+		long createdNomenclatures = trainingCourse.getQueenCampaign().getNomenclatures().parallelStream()
+				.filter(n -> secureParallelCallWithContext(
+						() -> queenApiService.postNomenclaturesToApi(n),
+						n.getId(),
+						"POST nomenclature-%s failed",
+						securityContext
+				))
+				.count();
 
 		log.info("Trying to post {} questionnaires",
-                trainingCourse.getQueenCampaign().getQuestionnaireModels().size());
-		questionnairesSuccess =
-                trainingCourse.getQueenCampaign().getQuestionnaireModels().stream().parallel().filter(q -> {
-			try {
-				queenApiService.postQuestionnaireModelToApi(q);
-				return true;
-			} catch (Exception e) {
-				log.error("Error during creation of questionnaire : {}",
-						q.getIdQuestionnaireModel());
-				log.error(e.getMessage());
-				return false;
-			}
-		}).count();
+				trainingCourse.getQueenCampaign().getQuestionnaireModels().size());
+		long createdQuestionnaires = trainingCourse.getQueenCampaign().getQuestionnaireModels().parallelStream()
+				.filter(q -> secureParallelCallWithContext(
+						() -> queenApiService.postQuestionnaireModelToApi(q),
+						q.getIdQuestionnaireModel(),
+						"POST questionnaire-%s failed",
+						securityContext
+				))
+				.count();
+
 
 		log.info("Trying to post campaign");
-		try {
-			queenApiService.postCampaignToApi(trainingCourse.getQueenCampaign());
-			queenCampaignSuccess = true;
-		} catch (Exception e) {
-			log.error("Error during creation of campaignDto : {}", trainingCourse.getId());
-			log.error(e.getMessage());
-		}
+		boolean queenCampaignSuccess = runWithErrorLogging(
+				() -> queenApiService.postCampaignToApi(trainingCourse.getQueenCampaign()),
+				String.format("Error during creation campaign : %s", trainingCourse.getId())
+		);
+
+
 		List<QueenSurveyUnit> queenSurveyUnitsToPost =
 				trainingCourse.getSurveyUnits().stream().map(MassiveSurveyUnit::getQueenSurveyUnit).toList();
 
 		log.info("Trying to post {} queen survey-units", queenSurveyUnitsToPost.size());
-		queenSurveyUnitsSuccess = queenSurveyUnitsToPost.stream().parallel().filter(su -> {
-			try {
-				queenApiService.postUeToApi(su, trainingCourse.getId());
-				return true;
-			} catch (Exception e) {
-				log.error("Error during creation of surveyUnit : {}", su.getId());
-				log.error(e.getMessage());
-				return false;
-			}
-		}).count();
+		long createdQueenSurveyUnits = queenSurveyUnitsToPost.parallelStream()
+				.filter(su -> secureParallelCallWithContext(
+						() -> queenApiService.postUeToApi(su, trainingCourse.getId()),
+						su.getId(),
+						"POST surveyUnit-%s failed",
+						securityContext
+				))
+				.count();
 
-		boolean queenSuccess =
-                queenCampaignSuccess && nomenclaturesSuccess == trainingCourse.getQueenCampaign().getNomenclatures().size()
-				&& questionnairesSuccess == trainingCourse.getQueenCampaign().getQuestionnaireModels().size()
-				&& queenSurveyUnitsSuccess == queenSurveyUnitsToPost.size();
-		String queenMessage = String.format(
-				"Nomenclatures: %d/%d, Questionnaires: %d/%d, SurveyUnits: %d/%d, Campaign: %b",
-				nomenclaturesSuccess, trainingCourse.getQueenCampaign().getNomenclatures().size(),
-                questionnairesSuccess,
-				trainingCourse.getQueenCampaign().getQuestionnaireModels().size(), queenSurveyUnitsSuccess,
-				queenSurveyUnitsToPost.size(), queenCampaignSuccess);
+		log.info("Nomenclatures: {}/{} , Questionnaires: {}/{} , SurveyUnits: {}/{} , Campaign: {}",
+				createdNomenclatures,
+				trainingCourse.getQueenCampaign().getNomenclatures().size(),
+				createdQuestionnaires,
+				trainingCourse.getQueenCampaign().getQuestionnaireModels().size(),
+				createdQueenSurveyUnits,
+				queenSurveyUnitsToPost.size(),
+				queenCampaignSuccess
+		);
 
-		log.info(queenMessage);
 
-		return pearlSuccess && queenSuccess ? trainingCourse : null;
+		return queenCampaignSuccess && createdNomenclatures == trainingCourse.getQueenCampaign().getNomenclatures().size()
+				&& createdQuestionnaires == trainingCourse.getQueenCampaign().getQuestionnaireModels().size()
+				&& createdQueenSurveyUnits == queenSurveyUnitsToPost.size();
 	}
+
 
 	public boolean checkUsers(List<String> users) {
 
@@ -169,7 +154,7 @@ public class ExternalApiService {
 
 	}
 
-	public ResponseEntity<String> deleteCampaign( String id) {
+	public ResponseEntity<String> deleteCampaign(String id) {
 		List<Campaign> pearlCampaigns = pearlApiService.getCampaigns(true);
 		if (pearlCampaigns.stream().noneMatch(camp -> camp.getId().equals(id))) {
 			log.error("DELETE campaign with id {} resulting in 404 because it does not exists", id);
@@ -208,6 +193,35 @@ public class ExternalApiService {
 
 		}).allMatch(response -> response.getStatusCode().is2xxSuccessful());
 
+	}
+
+	private boolean secureParallelCallWithContext(
+			Runnable action,
+			String entityId,
+			String errorFormat,
+			SecurityContext context
+	) {
+		SecurityContextHolder.setContext(context);
+		try {
+			action.run();
+			return true;
+		} catch (Exception e) {
+			String errorMessage = String.format(errorFormat, entityId);
+			log.error(errorMessage, e);
+			return false;
+		}
+	}
+
+
+	private boolean runWithErrorLogging(Runnable action, String errorMessage) {
+		try {
+			action.run();
+			return true;
+		} catch (Exception e) {
+			log.error(errorMessage);
+			log.error(e.getMessage(), e);
+			return false;
+		}
 	}
 
 }

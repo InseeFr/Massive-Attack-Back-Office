@@ -33,7 +33,7 @@ public class PearlApiService {
 	}
 
 	public ResponseEntity<String> postUesToApi(List<PearlSurveyUnit> surveyUnits) {
-		log.info("Create SurveyUnits ");
+		log.info("Create {} SurveyUnits ",surveyUnits.size());
 		final String apiUri = applicationProperties.managementUrl().concat("/api/survey-units");
 		return restTemplate.exchange(apiUri, HttpMethod.POST, new HttpEntity<>(surveyUnits),
 				String.class);
@@ -56,7 +56,7 @@ public class PearlApiService {
 	}
 
 	public ResponseEntity<String> postAssignmentsToApi(List<Assignment> assignments) {
-		log.info("Create assignments");
+		log.info("Create {} assignments", assignments.size());
 		final String apiUri = applicationProperties.managementUrl().concat("/api/survey-units/interviewers");
 		return restTemplate.exchange(apiUri, HttpMethod.POST, new HttpEntity<>(assignments),
 				String.class);
