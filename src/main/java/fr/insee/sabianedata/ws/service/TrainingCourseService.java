@@ -67,7 +67,7 @@ public class TrainingCourseService {
 
 		List<String> newQuestionnaireIds = newQuestionnaireModels.stream()
 				.map(QuestionnaireModel::getIdQuestionnaireModel).toList();
-
+		generatedCampaign.getQueenCampaign().setQuestionnaireModels(newQuestionnaireModels);
 		generatedCampaign.getQueenCampaign().setQuestionnaireIds(newQuestionnaireIds);
 
 
