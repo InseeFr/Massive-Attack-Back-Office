@@ -219,7 +219,6 @@ public class ExternalApiService {
 			return true;
 		} catch (Exception e) {
 			log.error(errorMessage);
-			log.error(e.getMessage(), e);
 			return false;
 		}
 	}

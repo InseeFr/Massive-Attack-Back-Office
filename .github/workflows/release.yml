@@ -35,15 +35,14 @@ jobs:
         run: echo "::set-output name=prop::$(mvn -f pom.xml help:evaluate -Dexpression=project.version -q -DforceStdout)"
       - run: echo ${{steps.version.outputs.prop}}
       - name: Release snapshot
-        id: release_snapshot
-        uses: actions/create-release@v4
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{steps.version.outputs.prop}}
-          release_name: Release ${{steps.version.outputs.prop}}
+          tag_name: ${{ steps.version.outputs.prop }}
+          name: Release ${{ steps.version.outputs.prop }}
           draft: false
           prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   docker:
     needs: build
     runs-on: ubuntu-latest
