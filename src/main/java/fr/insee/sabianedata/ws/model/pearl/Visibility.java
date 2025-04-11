@@ -5,14 +5,20 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 import fr.insee.sabianedata.ws.utils.DateParser;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @JacksonXmlRootElement(localName = "Visibility")
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@NoArgsConstructor
+@Setter
+@Getter
 public class Visibility {
-    // peut-être changer les date en type "long" au lieu de "String"
 
     @JacksonXmlProperty(localName = "OrganisationalUnit")
     private String organizationalUnit;
+
     @JacksonXmlProperty(localName = "CollectionStartDate")
     private String collectionStartDateString;
     @JacksonXmlProperty(localName = "CollectionEndDate")
@@ -32,54 +38,9 @@ public class Visibility {
     private Long interviewerStartDate;
     private Long managementStartDate;
     private Long endDate;
-
-    public Long getCollectionStartDate() {
-        return collectionStartDate;
-    }
-
-    public void setCollectionStartDate(Long collectionStartDate) {
-        this.collectionStartDate = collectionStartDate;
-    }
-
-    public Long getCollectionEndDate() {
-        return collectionEndDate;
-    }
-
-    public void setCollectionEndDate(Long collectionEndDate) {
-        this.collectionEndDate = collectionEndDate;
-    }
-
-    public Long getIdentificationPhaseStartDate() {
-        return identificationPhaseStartDate;
-    }
-
-    public void setIdentificationPhaseStartDate(Long identificationPhaseStartDate) {
-        this.identificationPhaseStartDate = identificationPhaseStartDate;
-    }
-
-    public Long getInterviewerStartDate() {
-        return interviewerStartDate;
-    }
-
-    public void setInterviewerStartDate(Long interviewerStartDate) {
-        this.interviewerStartDate = interviewerStartDate;
-    }
-
-    public Long getManagementStartDate() {
-        return managementStartDate;
-    }
-
-    public void setManagementStartDate(Long managementStartDate) {
-        this.managementStartDate = managementStartDate;
-    }
-
-    public Long getEndDate() {
-        return endDate;
-    }
-
-    public void setEndDate(Long endDate) {
-        this.endDate = endDate;
-    }
+    private String mail = "no-mail-yet";
+    private String tel = "no-tel-yet";
+    private boolean useLetterCommunication = false;
 
     public Visibility(Visibility visibility) throws IllegalArgumentException {
         this.organizationalUnit = visibility.getOrganizationalUnit();
@@ -96,78 +57,27 @@ public class Visibility {
         this.interviewerStartDateString = visibility.getInterviewerStartDateString();
         this.managementStartDateString = visibility.getManagementStartDateString();
         this.endDateString = visibility.getEndDateString();
+        this.mail = visibility.getMail();
+        this.tel= visibility.getTel();
+        this.useLetterCommunication= visibility.isUseLetterCommunication();
     }
 
-    public Visibility(Visibility visibility, Long referenceDate) throws IllegalArgumentException {
-        this.organizationalUnit = visibility.getOrganizationalUnit();
-        this.collectionStartDate = DateParser.relativeDateParse(visibility.getCollectionStartDateString(),
+    /**
+     * Apply the date modification to the reference date to calculate the final dates.
+     *
+     * @param referenceDate the reference date
+     */
+    public void updateDatesWithReferenceDate(Long referenceDate) {
+        this.collectionStartDate = DateParser.relativeDateParse(collectionStartDateString,
                 referenceDate);
-        this.collectionEndDate = DateParser.relativeDateParse(visibility.getCollectionEndDateString(), referenceDate);
+        this.collectionEndDate = DateParser.relativeDateParse(collectionEndDateString, referenceDate);
         this.identificationPhaseStartDate = DateParser
-                .relativeDateParse(visibility.getIdentificationPhaseStartDateString(), referenceDate);
-        this.interviewerStartDate = DateParser.relativeDateParse(visibility.getInterviewerStartDateString(),
+                .relativeDateParse(identificationPhaseStartDateString, referenceDate);
+        this.interviewerStartDate = DateParser.relativeDateParse(interviewerStartDateString,
                 referenceDate);
-        this.managementStartDate = DateParser.relativeDateParse(visibility.getManagementStartDateString(),
+        this.managementStartDate = DateParser.relativeDateParse(managementStartDateString,
                 referenceDate);
-        this.endDate = DateParser.relativeDateParse(visibility.getEndDateString(), referenceDate);
+        this.endDate = DateParser.relativeDateParse(endDateString, referenceDate);
     }
 
-    public Visibility() {
-    }
-
-    public String getOrganizationalUnit() {
-        return organizationalUnit;
-    }
-
-    public void setOrganizationalUnit(String organizationalUnit) {
-        this.organizationalUnit = organizationalUnit;
-    }
-
-    public String getCollectionStartDateString() {
-        return collectionStartDateString;
-    }
-
-    public void setCollectionStartDateString(String collectionStartDateString) {
-        this.collectionStartDateString = collectionStartDateString;
-    }
-
-    public String getCollectionEndDateString() {
-        return collectionEndDateString;
-    }
-
-    public void setCollectionEndDateString(String collectionEndDateString) {
-        this.collectionEndDateString = collectionEndDateString;
-    }
-
-    public String getIdentificationPhaseStartDateString() {
-        return identificationPhaseStartDateString;
-    }
-
-    public void setIdentificationPhaseStartDateString(String identificationPhaseStartDateString) {
-        this.identificationPhaseStartDateString = identificationPhaseStartDateString;
-    }
-
-    public String getInterviewerStartDateString() {
-        return interviewerStartDateString;
-    }
-
-    public void setInterviewerStartDateString(String interviewerStartDateString) {
-        this.interviewerStartDateString = interviewerStartDateString;
-    }
-
-    public String getManagementStartDateString() {
-        return managementStartDateString;
-    }
-
-    public void setManagementStartDateString(String managementStartDateString) {
-        this.managementStartDateString = managementStartDateString;
-    }
-
-    public String getEndDateString() {
-        return endDateString;
-    }
-
-    public void setEndDateString(String endDateString) {
-        this.endDateString = endDateString;
-    }
 }

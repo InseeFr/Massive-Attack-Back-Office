@@ -4,10 +4,14 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 import fr.insee.sabianedata.ws.utils.DateParser;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @JacksonXmlRootElement(localName = "ContactOutcome")
 @NoArgsConstructor
+@Getter
+@Setter
 public class ContactOutcomeDto {
 
     @JacksonXmlProperty(localName = "Value")
@@ -24,39 +28,7 @@ public class ContactOutcomeDto {
         this.type = co.getType();
         this.dateString = co.getDateString();
         this.date = DateParser.relativeDateParse(co.getDateString(), reference);
-        this.totalNumberOfContactAttempts = co.getTotalNumberOfContactAttempts();
-    }
-
-    public Long getDate() {
-        return date;
-    }
-
-    public void setDate(Long date) {
-        this.date = date;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public int getTotalNumberOfContactAttempts() {
-        return totalNumberOfContactAttempts;
-    }
-
-    public void setAttemptsNumber(String attemptsNumber) {
-        this.totalNumberOfContactAttempts = Integer.parseInt(attemptsNumber);
-    }
-
-    public String getDateString() {
-        return dateString;
-    }
-
-    public void setDateString(String dateString) {
-        this.dateString = dateString;
+        this.totalNumberOfContactAttempts = Integer.parseInt(co.getAttemptsNumber());
     }
 
 }

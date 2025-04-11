@@ -1,115 +1,73 @@
 package fr.insee.sabianedata.ws.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import fr.insee.sabianedata.ws.config.Plateform;
-import fr.insee.sabianedata.ws.config.QueenProperties;
-import fr.insee.sabianedata.ws.model.queen.CampaignDto;
+import fr.insee.sabianedata.ws.config.properties.ApplicationProperties;
 import fr.insee.sabianedata.ws.model.queen.NomenclatureDto;
+import fr.insee.sabianedata.ws.model.queen.QueenCampaign;
+import fr.insee.sabianedata.ws.model.queen.QueenSurveyUnit;
 import fr.insee.sabianedata.ws.model.queen.QuestionnaireModelDto;
-import fr.insee.sabianedata.ws.model.queen.SurveyUnitDto;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.FileSystemResource;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
-
-import javax.servlet.http.HttpServletRequest;
-import java.io.File;
-import java.util.Arrays;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class QueenApiService {
 
-    @Autowired
-    QueenProperties queenProperties;
+	private final ApplicationProperties applicationProperties;
+	private final RestTemplate restTemplate;
 
-    @Autowired
-    RestTemplate restTemplate;
+	public ResponseEntity<String> postCampaignToApi(QueenCampaign queenCampaign) {
+		log.info("Creating Campaign {}", queenCampaign.getId());
+		final String apiUri = String.join("/", applicationProperties.questionnaireUrl(), "api/campaigns");
+		return restTemplate.exchange(apiUri, HttpMethod.POST, new HttpEntity<>(queenCampaign),
+				String.class);
+	}
 
-    public ResponseEntity<?> postCampaignToApi(HttpServletRequest request, CampaignDto campaignDto,
-            Plateform plateform) {
-        log.info("Creating Campaign {}", campaignDto.getId());
-        final String apiUri = queenProperties.getHostFromEnum(plateform) + "/api/campaigns";
-        HttpHeaders httpHeaders = createSimpleHeadersAuth(request);
-        httpHeaders.setContentType(MediaType.APPLICATION_JSON);
-        return restTemplate.exchange(apiUri, HttpMethod.POST, new HttpEntity<>(campaignDto, httpHeaders), String.class);
-    }
+	public ResponseEntity<String> postUeToApi(QueenSurveyUnit queenSurveyUnit,
+											  String idCampaign) {
+		log.info("Create SurveyUnit {}", queenSurveyUnit.getId());
+		final String apiUri = String.format("%s/api/campaign/%s/survey-unit", applicationProperties.questionnaireUrl()
+				, idCampaign);
+		return restTemplate.exchange(apiUri, HttpMethod.POST, new HttpEntity<>(queenSurveyUnit),
+				String.class);
+	}
 
-    public ResponseEntity<?> postUeToApi(HttpServletRequest request, SurveyUnitDto surveyUnitDto,
-            CampaignDto campaignDto, Plateform plateform) throws JsonProcessingException {
-        log.info("Create SurveyUnit {}", surveyUnitDto.getId());
-        String idCampaign = campaignDto.getId();
-        final String apiUri = queenProperties.getHostFromEnum(plateform) + "/api/campaign/" + idCampaign
-                + "/survey-unit";
-        HttpHeaders httpHeaders = createSimpleHeadersAuth(request);
-        httpHeaders.setContentType(MediaType.APPLICATION_JSON);
-        return restTemplate.exchange(apiUri, HttpMethod.POST, new HttpEntity<>(surveyUnitDto, httpHeaders),
-                String.class);
-    }
+	public ResponseEntity<String> postNomenclaturesToApi(NomenclatureDto nomenclatureDto) {
+		log.info("Create nomenclature {}", nomenclatureDto.getId());
+		final String apiUri = String.join("/", applicationProperties.questionnaireUrl(), "api/nomenclature");
+		log.info("Calling {}", apiUri);
+		return restTemplate.exchange(apiUri, HttpMethod.POST, new HttpEntity<>(nomenclatureDto),
+				String.class);
+	}
 
-    public ResponseEntity<?> postNomenclaturesToApi(HttpServletRequest request, NomenclatureDto nomenclatureDto,
-            Plateform plateform) {
-        log.info("Create nomenclature {}", nomenclatureDto.getId());
-        final String apiUri = queenProperties.getHostFromEnum(plateform) + "/api/nomenclature";
-        HttpHeaders httpHeaders = createSimpleHeadersAuth(request);
-        httpHeaders.setContentType(MediaType.APPLICATION_JSON);
-        log.info("Calling {}", apiUri);
-        return restTemplate.exchange(apiUri, HttpMethod.POST, new HttpEntity<>(nomenclatureDto, httpHeaders),
-                String.class);
-    }
+	public ResponseEntity<String> postQuestionnaireModelToApi(
+			QuestionnaireModelDto questionnaireModelDto) {
+		log.info("Create Questionnaire {}", questionnaireModelDto.getIdQuestionnaireModel());
+		final String apiUri = String.join("/", applicationProperties.questionnaireUrl(), "api/questionnaire-models");
+		return restTemplate.exchange(apiUri, HttpMethod.POST, new HttpEntity<>(questionnaireModelDto),
+				String.class);
+	}
 
-    public ResponseEntity<?> postQuestionnaireModelToApi(HttpServletRequest request,
-            QuestionnaireModelDto questionnaireModelDto, Plateform plateform) {
-        log.info("Create Questionnaire {}", questionnaireModelDto.getIdQuestionnaireModel());
-        final String apiUri = queenProperties.getHostFromEnum(plateform) + "/api/questionnaire-models";
-        HttpHeaders httpHeaders = createSimpleHeadersAuth(request);
-        httpHeaders.setContentType(MediaType.APPLICATION_JSON);
-        return restTemplate.exchange(apiUri, HttpMethod.POST, new HttpEntity<>(questionnaireModelDto, httpHeaders),
-                String.class);
-    }
 
-    public ResponseEntity<String> createFullCampaign(HttpServletRequest request, File campaignZip,
-            Plateform plateform) {
-        final String apiUri = queenProperties.getHostFromEnum(plateform) + "/api/campaign/context";
-        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-        body.add("file", new FileSystemResource(campaignZip));
-        HttpHeaders httpHeaders = createSimpleHeadersAuth(request);
-        httpHeaders.setContentType(MediaType.MULTIPART_FORM_DATA);
-        HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, httpHeaders);
-        return restTemplate.postForEntity(apiUri, requestEntity, String.class);
-    }
+	public ResponseEntity<String> deleteCampaign(String id) {
 
-    public HttpHeaders createSimpleHeadersAuth(HttpServletRequest request) {
-        String authTokenHeader = request.getHeader("Authorization");
-        HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
-        if (!StringUtils.isBlank(authTokenHeader))
-            httpHeaders.set("Authorization", authTokenHeader);
-        return httpHeaders;
-    }
+		// new CampaignDto with parameter id to send to pearl APi
+		final String apiUri = String.format("%s/api/campaign/%s?force=true", applicationProperties.questionnaireUrl(),
+				id);
+		return restTemplate.exchange(apiUri, HttpMethod.DELETE, new HttpEntity<>(id), String.class);
+	}
 
-    public ResponseEntity<String> deleteCampaign(HttpServletRequest request, Plateform plateform, String id) {
+	public boolean healthCheck() {
+		final String apiUri = String.join("/", applicationProperties.questionnaireUrl(), "api/healthcheck");
+		return restTemplate.exchange(apiUri, HttpMethod.GET, HttpEntity.EMPTY, String.class)
+				.getStatusCode().equals(HttpStatus.OK);
 
-        // new CampaignDto with parameter id to send to pearl APi
-        final String apiUri = queenProperties.getHostFromEnum(plateform) + "/api/campaign/" + id + "?force=true";
-        HttpHeaders httpHeaders = createSimpleHeadersAuth(request);
-        httpHeaders.setContentType(MediaType.APPLICATION_JSON);
-        return restTemplate.exchange(apiUri, HttpMethod.DELETE, new HttpEntity<>(id, httpHeaders), String.class);
-    }
-
-    public boolean healthCheck(HttpServletRequest request, Plateform plateform) {
-        final String apiUri = queenProperties.getHostFromEnum(plateform) + "/api/healthcheck";
-        HttpHeaders httpHeaders = createSimpleHeadersAuth(request);
-        httpHeaders.setContentType(MediaType.APPLICATION_JSON);
-        return restTemplate.exchange(apiUri, HttpMethod.GET, new HttpEntity<>(httpHeaders), String.class)
-                .getStatusCode().equals(HttpStatus.OK);
-
-    }
+	}
 
 }
