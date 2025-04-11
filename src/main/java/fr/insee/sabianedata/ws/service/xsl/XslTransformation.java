@@ -1,70 +1,59 @@
 package fr.insee.sabianedata.ws.service.xsl;
 
-import java.io.ByteArrayInputStream;
+import lombok.extern.slf4j.Slf4j;
+
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import javax.xml.transform.Source;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.*;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 
 
 /**
  * Main Saxon Service used to perform XSLT transformations
- * 
- * @author gerose
  *
+ * @author gerose
  */
+@Slf4j
 public class XslTransformation {
 
-	final static Logger logger = LoggerFactory.getLogger(XslTransformation.class);
+    private final TransformerFactory tFactory = new net.sf.saxon.TransformerFactoryImpl();
 
-	public void xslTransform(Transformer transformer, InputStream xmlInput, OutputStream xmlOutput) throws Exception {
-		logger.debug("Starting xsl transformation -Input : " + xmlInput + " -Output : " + xmlOutput);
-		transformer.transform(new StreamSource(xmlInput), new StreamResult(xmlOutput));
-	}
+    public XslTransformation() {
+        tFactory.setURIResolver(new ClasspathResourceURIResolver());
+    }
 
-	
-	public void transformFods2XML(InputStream inputFile, OutputStream outputFile, InputStream xslSheet) throws Exception {
-		logger.info("Converting fods to a xml ...");
-		TransformerFactory tFactory = new net.sf.saxon.TransformerFactoryImpl();
-		tFactory.setURIResolver(new ClasspathURIResolver());
-		Transformer transformer = tFactory.newTransformer(new StreamSource(xslSheet));
-		xslTransform(transformer, inputFile, outputFile);
-	}
+    private void xslTransform(Transformer transformer, InputStream xmlInput, OutputStream xmlOutput) throws TransformerException {
+        try {
+            transformer.transform(new StreamSource(xmlInput), new StreamResult(xmlOutput));
+        } catch (Exception e) {
+            log.error("Error during XSL transformation", e);
+            throw new TransformerException("Transformation failed", e);
+        }
+    }
 
-	
-	public void operationsFods2XML(InputStream input, InputStream xslSheet, OutputStream output, byte[] questionnaire)
-			throws Exception {
-		InputStream questionnaireIS = null;
-		TransformerFactory tFactory = new net.sf.saxon.TransformerFactoryImpl();
-		tFactory.setURIResolver(new ClasspathURIResolver());
+    public void transformFods2XML(InputStream inputFile, OutputStream outputFile, InputStream xslSheet) throws Exception {
+        Transformer transformer = tFactory.newTransformer(new StreamSource(xslSheet));
+        xslTransform(transformer, inputFile, outputFile);
+    }
 
-		Transformer transformer = tFactory.newTransformer(new StreamSource(xslSheet));
-		if (questionnaire != null) {
-			questionnaireIS = new ByteArrayInputStream(questionnaire);
-			Source source = new StreamSource(questionnaireIS);
-			transformer.setParameter(XslParameters.QUESTIONNAIRE, source);
-		}
-		xslTransform(transformer, input, output);
-		if (questionnaire != null) {
-			questionnaireIS.close();
-		}
-	}
+    static class ClasspathResourceURIResolver implements URIResolver {
+        @Override
+        public Source resolve(String href, String base) throws TransformerException {
+            log.debug("Resolving URI: href={}, base={}", href, base);
 
-	public void generateSampleProcessing(InputStream input, InputStream xslSheet, OutputStream output, int repetitions) throws Exception {
-		TransformerFactory tFactory = new net.sf.saxon.TransformerFactoryImpl();
-		tFactory.setURIResolver(new ClasspathURIResolver());
-		Transformer transformer = tFactory.newTransformer(new StreamSource(xslSheet));
-		transformer.setParameter(XslParameters.REPETITIONS, repetitions);
-		xslTransform(transformer, input, output);
+            // Adjust relative paths
+            String resolvedPath = "/xslt/".concat(href);
+            InputStream resourceStream = ClasspathResourceURIResolver.class.getResourceAsStream(resolvedPath);
 
-	}
-	
+            if (resourceStream == null) {
+                log.error("Resource not found at: {}", resolvedPath);
+                throw new TransformerException("Resource not found: " + resolvedPath);
+            }
+
+            log.debug("Successfully resolved XSL resource at: {}", resolvedPath);
+            return new StreamSource(resourceStream);
+        }
+    }
 }

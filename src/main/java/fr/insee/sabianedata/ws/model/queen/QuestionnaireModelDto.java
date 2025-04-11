@@ -2,28 +2,42 @@ package fr.insee.sabianedata.ws.model.queen;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.insee.sabianedata.ws.utils.JsonFileToJsonNode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.io.File;
+import java.nio.file.Path;
 
+@Getter
+@Setter
+@NoArgsConstructor
 public class QuestionnaireModelDto extends QuestionnaireModel {
 
-    public static final String FOLDER = "questionnaireModels";
+	private JsonNode value;
+	private static final String QUESTIONNAIRE_MODELS = "questionnaireModels";
 
-    private JsonNode value;
+	public QuestionnaireModelDto(QuestionnaireModel questionnaireModel, Path folderPath) {
+		super(questionnaireModel.getIdQuestionnaireModel(), questionnaireModel.getLabel(),
+				questionnaireModel.getRequiredNomenclatureIds());
 
-    public QuestionnaireModelDto(QuestionnaireModel questionnaireModel, String folder) {
-        super(questionnaireModel.getIdQuestionnaireModel(), questionnaireModel.getLabel(),
-                questionnaireModel.getRequiredNomenclatureIds());
-        File questionnaireFile = new File(
-                folder + File.separator + FOLDER + File.separator + questionnaireModel.getFileName());
-        this.value = JsonFileToJsonNode.getJsonNodeFromFile(questionnaireFile);
-    }
+		Path questionnaireFilePath = folderPath
+				.resolve(QUESTIONNAIRE_MODELS)
+				.resolve(questionnaireModel.getFileName());
 
-    public JsonNode getValue() {
-        return value;
-    }
+		File questionnaireFile = questionnaireFilePath.toFile();
+		this.value = JsonFileToJsonNode.getJsonNodeFromFile(questionnaireFile);
+	}
 
-    public void setValue(JsonNode value) {
-        this.value = value;
-    }
+	public QuestionnaireModelDto deepClone(){
+		QuestionnaireModelDto clone = new QuestionnaireModelDto();
+		clone.setIdQuestionnaireModel(this.getIdQuestionnaireModel());
+		clone.setLabel(this.getLabel());
+		clone.setValue(this.getValue());
+		clone.setCampaignId(this.getCampaignId());
+
+		return clone;
+
+	}
+
 }

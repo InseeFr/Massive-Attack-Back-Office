@@ -2,41 +2,21 @@ package fr.insee.sabianedata.ws.model.pearl;
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @JacksonXmlRootElement(localName = "PhoneNumber")
+@NoArgsConstructor
+@Getter
+@Setter
 public class PhoneNumber {
 
-    @JacksonXmlProperty(localName="Source")
+    @JacksonXmlProperty(localName = "Source")
     private String source;
-    @JacksonXmlProperty(localName="Favorite")
+    @JacksonXmlProperty(localName = "Favorite")
     private boolean favorite;
-    @JacksonXmlProperty(localName="Number")
+    @JacksonXmlProperty(localName = "Number")
     private String number;
 
-    public String getSource() {
-        return source;
-    }
-
-    public void setSource(String source) {
-        this.source = source;
-    }
-
-    public boolean isFavorite() {
-        return favorite;
-    }
-
-    public void setFavorite(boolean favorite) {
-        this.favorite = favorite;
-    }
-
-    public String getNumber() {
-        return number;
-    }
-
-    public void setNumber(String number) {
-        this.number = number;
-    }
-
-    public PhoneNumber() {
-    }
 }

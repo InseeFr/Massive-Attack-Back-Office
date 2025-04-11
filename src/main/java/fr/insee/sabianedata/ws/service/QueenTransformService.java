@@ -5,13 +5,11 @@ import java.io.File;
 import org.springframework.stereotype.Service;
 
 import fr.insee.sabianedata.ws.service.xsl.QueenCampaignTransformer;
-import fr.insee.sabianedata.ws.service.xsl.SampleProcessingXMLTransformer;
 
 @Service
 public class QueenTransformService {
 
-	private QueenCampaignTransformer queenCampaignTransformer = new QueenCampaignTransformer();
-	private SampleProcessingXMLTransformer sampleProcessingXMLTransformer = new SampleProcessingXMLTransformer();
+	private final QueenCampaignTransformer queenCampaignTransformer = new QueenCampaignTransformer();
 
 	public File getQueenCampaign(File fodsInput) throws Exception {
 		return queenCampaignTransformer.extractCampaign(fodsInput);
@@ -27,10 +25,6 @@ public class QueenTransformService {
 
 	public File getQueenNomenclatures(File fodsInput) throws Exception {
 		return queenCampaignTransformer.extractNomenclatures(fodsInput);
-	}
-
-	public File sampleProcessing(File input, int repetitions) throws Exception {
-		return sampleProcessingXMLTransformer.transform(input, repetitions);
 	}
 
 }

@@ -2,12 +2,15 @@ package fr.insee.sabianedata.ws.model.pearl;
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @JacksonXmlRootElement(localName = "Referent")
+@NoArgsConstructor
+@Getter
+@Setter
 public class Referent {
-
-    public Referent() {
-    }
 
     @JacksonXmlProperty(localName = "FirstName")
     private String firstName;
@@ -18,36 +21,5 @@ public class Referent {
     @JacksonXmlProperty(localName = "PhoneNumber")
     private String phoneNumber;
 
-    public String getFirstName() {
-        return this.firstName;
-    }
-
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
-    }
-
-    public String getLastName() {
-        return this.lastName;
-    }
-
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
-    }
-
-    public String getRole() {
-        return this.role;
-    }
-
-    public void setRole(String role) {
-        this.role = role;
-    }
-
-    public String getPhoneNumber() {
-        return this.phoneNumber;
-    }
-
-    public void setPhoneNumber(String phoneNumber) {
-        this.phoneNumber = phoneNumber;
-    }
 
 }

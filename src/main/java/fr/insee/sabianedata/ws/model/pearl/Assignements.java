@@ -18,6 +18,6 @@ public class Assignements {
 
     @JacksonXmlProperty(localName = "Assignement")
     @JacksonXmlElementWrapper(useWrapping = false)
-    private List<Assignement> assignements;
+    private List<Assignment> assignments;
 
 }

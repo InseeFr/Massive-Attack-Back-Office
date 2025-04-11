@@ -30,7 +30,6 @@ public class DateParser {
             DMY_REGEXP);
 
     /**
-     * 
      * @param input the string representing a fixed date
      * @return Long typed timestamp in UTC+00:00
      * @throws IllegalArgumentException if input doesn't respect expected format :
@@ -40,13 +39,11 @@ public class DateParser {
         if (isRelativeDateParsable(input)) {
             return relativeDateParse(input, new Date().getTime());
         }
-        if (!isDmyParsable(input))
-            throw new IllegalArgumentException(input + PATTERN_ERROR_MESSAGE);
+        checkIsDmyParsable(input);
         return stringToLong(input);
     }
 
     /**
-     * 
      * @param input     the string representing a date modification in days J-5 /
      *                  J+99
      * @param reference Long typed timestamp to wich the input change is to be
@@ -61,8 +58,11 @@ public class DateParser {
         return updateDays(input, longToLdt(reference));
     }
 
-    public static boolean isDmyParsable(String input) {
-        return dmyPattern.matcher(input).find();
+    public static void checkIsDmyParsable(String input) {
+
+        if (!dmyPattern.matcher(input).matches()) {
+            throw new IllegalArgumentException(input + PATTERN_ERROR_MESSAGE);
+        }
     }
 
     public static boolean isRelativeDateParsable(String input) {
@@ -70,24 +70,17 @@ public class DateParser {
     }
 
     /**
-     * 
-     * @param input the string to be checked for parsability
-     * @return true if input is parsable as fixed date "dd/MM/yyyy HH:mm:ss" or
-     *         relative date "J([+-])([0-9]+)"
-     */
-    public static boolean isParsable(String input) {
-        return isDmyParsable(input) || isRelativeDateParsable(input);
-    }
-
-    /**
-     * 
-     * @param input
-     * @param ldt
-     * @return
+     * Apply a date modificator (i.e.`J+2`) to a date and return the updated date
+     *
+     * @param input day modificator
+     * @param ldt   date to update
+     * @return updated date as a Long
      */
     public static Long updateDays(String input, LocalDateTime ldt) {
         Matcher matcher = relativeDatePattern.matcher(input);
-        matcher.matches();
+        if (!matcher.matches()) {
+            throw new IllegalArgumentException(input + PATTERN_ERROR_MESSAGE);
+        }
         String operator = matcher.group("operator");
         long value = Long.parseLong(matcher.group("value"));
         return ldtToLong(operator.equals("+") ? ldt.plusDays(value) : ldt.minusDays(value));
@@ -97,15 +90,13 @@ public class DateParser {
     // converting methods between String | Long | LocalDateTime
 
     public static Long stringToLong(String input) throws IllegalArgumentException {
-        if (!isDmyParsable(input))
-            throw new IllegalArgumentException(input + PATTERN_ERROR_MESSAGE);
+        checkIsDmyParsable(input);
         return ldtToLong(stringToLdt(input, DMY_DATE_FORMAT));
 
     }
 
     public static LocalDateTime stringToLdt(String input, String dateFormat) throws IllegalArgumentException {
-        if (!isDmyParsable(input))
-            throw new IllegalArgumentException(input + PATTERN_ERROR_MESSAGE);
+        checkIsDmyParsable(input);
         return LocalDateTime.from(formatterFromPattern(dateFormat).parse(input));
     }
 
@@ -113,16 +104,8 @@ public class DateParser {
         return LocalDateTime.ofInstant(Instant.ofEpochMilli(date), ZoneOffset.UTC);
     }
 
-    public static String longToString(Long input) {
-        return ldtToString(longToLdt(input));
-    }
-
     public static Long ldtToLong(LocalDateTime ldt) {
         return ldt.atZone(ZoneOffset.UTC).toInstant().toEpochMilli();
-    }
-
-    public static String ldtToString(LocalDateTime input) {
-        return input.format(formatterFromPattern(DMY_DATE_FORMAT));
     }
 
     private static DateTimeFormatter formatterFromPattern(String regexp) {

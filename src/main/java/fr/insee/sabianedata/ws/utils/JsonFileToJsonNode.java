@@ -21,6 +21,7 @@ public final class JsonFileToJsonNode {
         try {
             result = mapper.readTree(file);
         } catch (IOException e) {
+            log.error("Problem with file {}", file);
             log.error("Something went wrong when mapping to JsonNode", e);
             result = null;
         }
