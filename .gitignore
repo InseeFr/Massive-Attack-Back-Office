@@ -8,3 +8,4 @@
 .vscode/
 target/
 logs
+src/main/resources/scenarii/Formation_EEC

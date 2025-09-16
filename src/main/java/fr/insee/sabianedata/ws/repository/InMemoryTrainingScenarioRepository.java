@@ -11,7 +11,7 @@ import fr.insee.sabianedata.ws.model.pearl.PearlCampaign;
 import fr.insee.sabianedata.ws.model.pearl.PearlSurveyUnit;
 import fr.insee.sabianedata.ws.model.queen.NomenclatureDto;
 import fr.insee.sabianedata.ws.model.queen.QueenCampaign;
-import fr.insee.sabianedata.ws.model.queen.QueenSurveyUnit;
+import fr.insee.sabianedata.ws.model.queen.QueenInterrogation;
 import fr.insee.sabianedata.ws.model.queen.QuestionnaireModelDto;
 import fr.insee.sabianedata.ws.service.ExtractionService;
 import lombok.RequiredArgsConstructor;
@@ -199,10 +199,10 @@ public class InMemoryTrainingScenarioRepository implements TrainingScenarioRepos
 		Path queenFolder = new File(campaignDirectory, "queen").toPath();
 		File queenSourceFile = new File(queenFolder.toFile(), "queen_campaign.fods");
 		QueenCampaign queenCampaign = extractQueenCampaign(queenFolder, queenSourceFile);
-		List<QueenSurveyUnit> queenSurveyUnits = extractQueenSurveyUnits(queenFolder, queenSourceFile);
+		List<QueenInterrogation> queenInterrogations = extractQueenInterrogations(queenFolder, queenSourceFile);
 
 		// merge pearl and queen into MassiveSurveyUnits
-		List<MassiveSurveyUnit> surveyUnits = mergePearlAndQueenSurveyUnits(pearlSurveyUnits, queenSurveyUnits);
+		List<MassiveSurveyUnit> surveyUnits = mergePearlAndQueenSurveyUnits(pearlSurveyUnits, queenInterrogations);
 
 		// wrap pearl and queen campaign together for easier id handling
 		return new MassiveCampaign(pearlCampaign, queenCampaign, surveyUnits, assignments);
@@ -253,27 +253,28 @@ public class InMemoryTrainingScenarioRepository implements TrainingScenarioRepos
 		}
 	}
 
-	private List<QueenSurveyUnit> extractQueenSurveyUnits(Path queenFolder, File queenSourceFile) {
+	private List<QueenInterrogation> extractQueenInterrogations(Path queenFolder, File queenSourceFile) {
 		try {
-			return extractionService.extractQueenSurveyUnits(queenSourceFile,
+			return extractionService.extractQueenInterrogations(queenSourceFile,
 					queenFolder);
 		} catch (Exception e) {
-			throw new TrainingScenarioLoadingException("Queen survey-units extraction failed", e);
+			throw new TrainingScenarioLoadingException("Queen interrogations extraction failed", e);
 		}
 
 	}
 
 	private List<MassiveSurveyUnit> mergePearlAndQueenSurveyUnits(List<PearlSurveyUnit> pearlUnits,
-																  List<QueenSurveyUnit> queenUnits) {
+																  List<QueenInterrogation> queenUnits) {
 		// Create a map of QueenSurveyUnit by their id for quick lookup
-		Map<String, QueenSurveyUnit> queenUnitMap = queenUnits.stream()
-				.collect(Collectors.toMap(QueenSurveyUnit::getId, queenSu -> queenSu));
+		Map<String, QueenInterrogation> queenUnitMap = queenUnits.stream()
+				.collect(Collectors.toMap(QueenInterrogation::getSurveyUnitId, queenInterrogation -> queenInterrogation));
 
 		// Map each PearlSurveyUnit to a MassiveSurveyUnit by finding the matching QueenSurveyUnit by id
 		return pearlUnits.stream()
 				.map(pearlSu -> {
-					QueenSurveyUnit queenSu = queenUnitMap.get(pearlSu.getDisplayName());
-					return new MassiveSurveyUnit(pearlSu.getId(), pearlSu, queenSu); // Create MassiveSurveyUnit
+					QueenInterrogation queenInterrogation = queenUnitMap.get(pearlSu.getDisplayName());
+					queenInterrogation.setSurveyUnitId(pearlSu.getDisplayName());
+					return new MassiveSurveyUnit(pearlSu.getId(), pearlSu, queenInterrogation); // Create MassiveSurveyUnit
 				})
 				.toList();
 

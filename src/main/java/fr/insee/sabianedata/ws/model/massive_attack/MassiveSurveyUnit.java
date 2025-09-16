@@ -1,7 +1,7 @@
 package fr.insee.sabianedata.ws.model.massive_attack;
 
 import fr.insee.sabianedata.ws.model.pearl.PearlSurveyUnit;
-import fr.insee.sabianedata.ws.model.queen.QueenSurveyUnit;
+import fr.insee.sabianedata.ws.model.queen.QueenInterrogation;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -13,5 +13,5 @@ public class MassiveSurveyUnit {
 
     private String id;
     private PearlSurveyUnit pearlSurveyUnit;
-    private QueenSurveyUnit queenSurveyUnit;
+    private QueenInterrogation queenInterrogation;
 }
