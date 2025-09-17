@@ -29,13 +29,13 @@ public class QueenExtractEntities {
         return getQueenCampaignFromXMLFile(file);
     }
 
-    public List<QueenSurveyUnit> getQueenSurveyUnitsFromFods(File fods, Path folderPath) throws Exception {
-        File file = queenTransformService.getQueenSurveyUnits(fods);
-        SurveyUnitsList surveyUnits = xmlMapper.readValue(file, SurveyUnitsList.class);
-        return surveyUnits.getSurveyUnits().stream().map(s -> {
-            QueenSurveyUnit suDto = new QueenSurveyUnit(s);
-            suDto.extractJsonFromFiles(folderPath);
-            return suDto;
+    public List<QueenInterrogation> getQueenInterrogationsFromFods(File fods, Path folderPath) throws Exception {
+        File file = queenTransformService.getQueenInterrogations(fods);
+        InterrogationsList interrogations = xmlMapper.readValue(file, InterrogationsList.class);
+        return interrogations.getInterrogations().stream().map(s -> {
+            QueenInterrogation interrogationDto = new QueenInterrogation(s);
+            interrogationDto.extractJsonFromFiles(folderPath);
+            return interrogationDto;
         }).toList();
     }
 

@@ -13,10 +13,10 @@ import lombok.Setter;
 @AllArgsConstructor
 @Getter
 @Setter
-public class SurveyUnit {
+public class Interrogation {
 
     @JacksonXmlProperty(localName = "Id")
-    private String id;
+    private String surveyUnitId;
 
     @JacksonXmlProperty(localName = "QuestionnaireId")
     private String questionnaireId;
@@ -36,14 +36,14 @@ public class SurveyUnit {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private String commentFile;
 
-    public SurveyUnit(String id, String questionnaireId, String stateDataFile) {
-        this.id = id;
+    public Interrogation(String surveyUnitId, String questionnaireId, String stateDataFile) {
+        this.surveyUnitId = surveyUnitId;
         this.questionnaireId = questionnaireId;
         this.stateDataFile = stateDataFile;
     }
 
-    public SurveyUnit(SurveyUnit su) {
-        this(su.getId(), su.getQuestionnaireId(), su.getStateDataFile(), su.getDataFile(), su.getCommentFile(),
+    public Interrogation(Interrogation su) {
+        this(su.getSurveyUnitId(), su.getQuestionnaireId(), su.getStateDataFile(), su.getDataFile(), su.getCommentFile(),
                 su.getPersonalizationFile());
     }
 

@@ -14,10 +14,10 @@ import lombok.Setter;
 @NoArgsConstructor
 @Getter
 @Setter
-public class SurveyUnitsList {
+public class InterrogationsList {
 
     @JacksonXmlProperty(localName = "SurveyUnit")
     @JacksonXmlElementWrapper(useWrapping = false)
-    private List<SurveyUnit> surveyUnits;
+    private List<Interrogation> interrogations;
 
 }

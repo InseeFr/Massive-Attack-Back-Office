@@ -7,7 +7,7 @@ import fr.insee.sabianedata.ws.model.pearl.Campaign;
 import fr.insee.sabianedata.ws.model.pearl.InterviewerDto;
 import fr.insee.sabianedata.ws.model.pearl.PearlSurveyUnit;
 import fr.insee.sabianedata.ws.model.pearl.UserDto;
-import fr.insee.sabianedata.ws.model.queen.QueenSurveyUnit;
+import fr.insee.sabianedata.ws.model.queen.QueenInterrogation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -92,14 +92,14 @@ public class ExternalApiService {
 		);
 
 
-		List<QueenSurveyUnit> queenSurveyUnitsToPost =
-				trainingCourse.getSurveyUnits().stream().map(MassiveSurveyUnit::getQueenSurveyUnit).toList();
+		List<QueenInterrogation> queenSurveyUnitsToPost =
+				trainingCourse.getSurveyUnits().stream().map(MassiveSurveyUnit::getQueenInterrogation).toList();
 
 		log.info("Trying to post {} queen survey-units", queenSurveyUnitsToPost.size());
 		long createdQueenSurveyUnits = queenSurveyUnitsToPost.parallelStream()
 				.filter(su -> secureParallelCallWithContext(
-						() -> queenApiService.postUeToApi(su, trainingCourse.getId()),
-						su.getId(),
+						() -> queenApiService.postInterrogationToApi(su, trainingCourse.getId()),
+						su.getSurveyUnitId(),
 						"POST surveyUnit-%s failed",
 						securityContext
 				))

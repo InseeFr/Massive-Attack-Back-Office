@@ -19,7 +19,7 @@ public class QueenTransformService {
 		return queenCampaignTransformer.extractQuestionnaireModels(fodsInput);
 	}
 
-	public File getQueenSurveyUnits(File fodsInput) throws Exception {
+	public File getQueenInterrogations(File fodsInput) throws Exception {
 		return queenCampaignTransformer.extractSurveyUnits(fodsInput);
 	}
 

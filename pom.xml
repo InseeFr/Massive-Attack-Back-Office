@@ -7,14 +7,14 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.4.4</version>
+		<version>3.5.5</version>
 		<relativePath/> <!-- Use default parent from central repo -->
 	</parent>
 
 	<groupId>fr.insee</groupId>
 	<artifactId>sabdatab</artifactId>
 	<packaging>war</packaging>
-	<version>4.0.0</version>
+	<version>4.1.0</version>
 	<name>Sabiane Data</name>
 
 	<properties>
