@@ -2,10 +2,10 @@ package fr.insee.sabianedata.ws.service;
 
 import fr.insee.sabianedata.ws.model.massive_attack.*;
 import fr.insee.sabianedata.ws.model.pearl.*;
-import fr.insee.sabianedata.ws.model.queen.QueenSurveyUnit;
+import fr.insee.sabianedata.ws.model.queen.QueenInterrogation;
 import fr.insee.sabianedata.ws.model.queen.QuestionnaireModel;
 import fr.insee.sabianedata.ws.model.queen.QuestionnaireModelDto;
-import fr.insee.sabianedata.ws.model.queen.SurveyUnit;
+import fr.insee.sabianedata.ws.model.queen.Interrogation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -110,12 +110,14 @@ public class TrainingCourseService {
 											   String organisationUnitId, Long referenceDate,
 											   String newQuestionnaireId) {
 		// to keep same id in  pearl and queen APIs
-		String newId = UUID.randomUUID().toString();
-		PearlSurveyUnit pearlSurveyUnit = updatePearlSurveyUnit(surveyUnit.getPearlSurveyUnit(), newId, interviewerId,
+		String newInterrogationId = UUID.randomUUID().toString();
+		PearlSurveyUnit pearlSurveyUnit = updatePearlSurveyUnit(surveyUnit.getPearlSurveyUnit(), newInterrogationId, interviewerId,
 				campaignId, organisationUnitId, referenceDate);
-		QueenSurveyUnit queenSurveyUnit = updateQueenSurveyUnit(surveyUnit.getQueenSurveyUnit(), newId,
+		QueenInterrogation queenInterrogation = updateQueenInterrogation(surveyUnit.getQueenInterrogation(),
+				newInterrogationId,
+				pearlSurveyUnit.getDisplayName(),
 				newQuestionnaireId);
-		return new MassiveSurveyUnit(newId, pearlSurveyUnit, queenSurveyUnit);
+		return new MassiveSurveyUnit(newInterrogationId, pearlSurveyUnit, queenInterrogation);
 
 	}
 
@@ -157,15 +159,18 @@ public class TrainingCourseService {
 	/**
 	 * Take a Queen survey-unit and return a clone of it updated with other params
 	 *
-	 * @param initialSurveyUnit  surveyUnit
-	 * @param newId              new surveyUnit Id
+	 * @param initialInterrogation  surveyUnit
+	 * @param newInterrogationId              new Interrogation Id
+	 * @param pearlSurveyUnitId               surveyUnit Id
 	 * @param newQuestionnaireId new questionnaireId
 	 * @return the updated clone
 	 */
-	private QueenSurveyUnit updateQueenSurveyUnit(QueenSurveyUnit initialSurveyUnit, String newId,
-												  String newQuestionnaireId) {
-		SurveyUnit newSu = new SurveyUnit(newId, newQuestionnaireId, initialSurveyUnit.getStateDataFile());
-		return new QueenSurveyUnit(initialSurveyUnit, newSu);
+	private QueenInterrogation updateQueenInterrogation(QueenInterrogation initialInterrogation,
+														String newInterrogationId,
+														String pearlSurveyUnitId,
+														String newQuestionnaireId) {
+		Interrogation newInterrogation = new Interrogation(pearlSurveyUnitId, newQuestionnaireId, initialInterrogation.getStateDataFile());
+		return new QueenInterrogation(newInterrogationId, initialInterrogation, newInterrogation);
 	}
 
 
@@ -199,7 +204,7 @@ public class TrainingCourseService {
 			case INTERVIEWER -> configuration.trainees().stream()
 					.flatMap(interviewerId -> surveyUnits.stream()
 							.map(surveyUnit -> {
-										String questId = surveyUnit.getQueenSurveyUnit().getQuestionnaireId();
+										String questId = surveyUnit.getQueenInterrogation().getQuestionnaireId();
 										String newQuestionnaireId = questionnaireIdMapping.get(questId);
 										return updateSurveyUnit(surveyUnit,
 												interviewerId,
@@ -218,7 +223,7 @@ public class TrainingCourseService {
 
 				yield surveyUnits.stream()
 						.map(surveyUnit -> {
-							String questId = surveyUnit.getQueenSurveyUnit().getQuestionnaireId();
+							String questId = surveyUnit.getQueenInterrogation().getQuestionnaireId();
 							String newQuestionnaireId = questionnaireIdMapping.get(questId);
 
 							return updateSurveyUnit(surveyUnit,

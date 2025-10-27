@@ -13,28 +13,30 @@ import lombok.extern.slf4j.Slf4j;
 @Getter
 @Setter
 @Slf4j
-public class QueenSurveyUnit extends SurveyUnit {
+public class QueenInterrogation extends Interrogation {
 
     public static final String FOLDER = "surveyUnits";
 
+    private String id;
     private JsonNode data;
     private JsonNode comment;
     private JsonNode personalization;
     private JsonNode stateData;
 
-    public QueenSurveyUnit(SurveyUnit surveyUnit) {
-        super(surveyUnit.getId(), surveyUnit.getQuestionnaireId(), surveyUnit.getStateDataFile(),
-                surveyUnit.getPersonalizationFile(),
-                surveyUnit.getDataFile(),
-                surveyUnit.getCommentFile());
+    public QueenInterrogation(Interrogation interrogation) {
+        super(interrogation.getSurveyUnitId(), interrogation.getQuestionnaireId(), interrogation.getStateDataFile(),
+                interrogation.getPersonalizationFile(),
+                interrogation.getDataFile(),
+                interrogation.getCommentFile());
     }
 
-    public QueenSurveyUnit(QueenSurveyUnit suDto, SurveyUnit su) {
-        super(su);
-        this.data = suDto.getData();
-        this.comment = suDto.getComment();
-        this.personalization = suDto.getPersonalization();
-        this.stateData = suDto.getStateData();
+    public QueenInterrogation(String id, QueenInterrogation interrogationDto, Interrogation interrogation) {
+        super(interrogation);
+        this.id = id;
+        this.data = interrogationDto.getData();
+        this.comment = interrogationDto.getComment();
+        this.personalization = interrogationDto.getPersonalization();
+        this.stateData = interrogationDto.getStateData();
     }
 
     public void extractJsonFromFiles(Path folderPath) {

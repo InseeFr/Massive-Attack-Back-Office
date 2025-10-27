@@ -3,7 +3,7 @@ package fr.insee.sabianedata.ws.service;
 import fr.insee.sabianedata.ws.config.properties.ApplicationProperties;
 import fr.insee.sabianedata.ws.model.queen.NomenclatureDto;
 import fr.insee.sabianedata.ws.model.queen.QueenCampaign;
-import fr.insee.sabianedata.ws.model.queen.QueenSurveyUnit;
+import fr.insee.sabianedata.ws.model.queen.QueenInterrogation;
 import fr.insee.sabianedata.ws.model.queen.QuestionnaireModelDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,12 +29,12 @@ public class QueenApiService {
 				String.class);
 	}
 
-	public ResponseEntity<String> postUeToApi(QueenSurveyUnit queenSurveyUnit,
-											  String idCampaign) {
-		log.info("Create SurveyUnit {}", queenSurveyUnit.getId());
-		final String apiUri = String.format("%s/api/campaign/%s/survey-unit", applicationProperties.questionnaireUrl()
+	public ResponseEntity<String> postInterrogationToApi(QueenInterrogation queenInterrogation,
+														 String idCampaign) {
+		log.info("Create Interrogation {} for survey-unit {}", queenInterrogation.getId(), queenInterrogation.getSurveyUnitId());
+		final String apiUri = String.format("%s/api/campaigns/%s/interrogation", applicationProperties.questionnaireUrl()
 				, idCampaign);
-		return restTemplate.exchange(apiUri, HttpMethod.POST, new HttpEntity<>(queenSurveyUnit),
+		return restTemplate.exchange(apiUri, HttpMethod.POST, new HttpEntity<>(queenInterrogation),
 				String.class);
 	}
 

@@ -5,7 +5,7 @@ import fr.insee.sabianedata.ws.model.pearl.PearlCampaign;
 import fr.insee.sabianedata.ws.model.pearl.PearlSurveyUnit;
 import fr.insee.sabianedata.ws.model.queen.NomenclatureDto;
 import fr.insee.sabianedata.ws.model.queen.QueenCampaign;
-import fr.insee.sabianedata.ws.model.queen.QueenSurveyUnit;
+import fr.insee.sabianedata.ws.model.queen.QueenInterrogation;
 import fr.insee.sabianedata.ws.model.queen.QuestionnaireModelDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -34,8 +34,8 @@ public class ExtractionService {
                 .getQueenNomenclaturesDtoFromFods(queenFodsInput, queenFolder);
     }
 
-    public List<QueenSurveyUnit> extractQueenSurveyUnits(File queenFodsInput, Path queenFolder) throws Exception {
-        return queenExtractEntities.getQueenSurveyUnitsFromFods(queenFodsInput,
+    public List<QueenInterrogation> extractQueenInterrogations(File queenFodsInput, Path queenFolder) throws Exception {
+        return queenExtractEntities.getQueenInterrogationsFromFods(queenFodsInput,
                 queenFolder);
     }
 

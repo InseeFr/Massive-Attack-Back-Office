@@ -1,0 +1,144 @@
+x-react-volumes: &react-volumes
+  - ./:/opt/app
+  - /mnt/wslg/.X11-unix:/tmp/.X11-unix
+  - /opt/app/node_modules
+
+services:
+  pearl-db:
+    profiles:
+      - apis
+      - all
+    image: postgres:14.15
+    environment:
+      - POSTGRES_USER=${PEARL_DB_USER}
+      - POSTGRES_PASSWORD=${PEARL_DB_PASSWORD}
+      - POSTGRES_DB=${PEARL_DB}
+    command: ['postgres']
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${PEARL_DB_USER} -d ${PEARL_DB} -h localhost']
+      interval: 5s
+      timeout: 10s
+      retries: 10
+    ports:
+      - ${PEARL_DB_PORT}:5432
+
+  questionnaire-db:
+    profiles:
+      - apis
+      - all
+    image: postgres:15.1
+    environment:
+      - POSTGRES_USER=${QUESTIONNAIRE_DB_USER}
+      - POSTGRES_PASSWORD=${QUESTIONNAIRE_DB_PASSWORD}
+      - POSTGRES_DB=${QUESTIONNAIRE_DB}
+    command: ['postgres']
+    healthcheck:
+      test:
+        ['CMD-SHELL', 'pg_isready -U ${QUESTIONNAIRE_DB_USER} -d ${QUESTIONNAIRE_DB} -h localhost']
+      interval: 5s
+      timeout: 10s
+      retries: 10
+    ports:
+      - ${QUESTIONNAIRE_DB_PORT}:5432
+
+  questionnaire-api:
+    profiles:
+      - apis
+      - all
+    image: inseefr/queen-back-office:5.3.0-rc
+    depends_on:
+      questionnaire-db:
+        condition: service_healthy
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://questionnaire-db:5432/${QUESTIONNAIRE_DB}
+      - SPRING_DATASOURCE_USERNAME=${QUESTIONNAIRE_DB_USER}
+      - SPRING_DATASOURCE_PASSWORD=${QUESTIONNAIRE_DB_PASSWORD}
+      - SPRING_DATASOURCE_DRIVERCLASSNAME=org.postgresql.Driver
+      - APPLICATION_TEMPFOLDER=/tmp
+      - APPLICATION_CORSORIGINS=http://localhost:3000,http://localhost:5001
+      - APPLICATION_ROLES_INTERVIEWER=${INTERVIEWER_ROLE}
+      - APPLICATION_ROLES_REVIEWER=${INTERNAL_USER_ROLE}
+      - APPLICATION_ROLES_ADMIN=${ADMIN_ROLE}
+      - APPLICATION_ROLES_WEBCLIENT=${WEBCLIENT_ROLE}
+      - FEATURE_OIDC_ENABLED=true
+      - FEATURE_OIDC_REALM=${AUTH_REALM}
+      - FEATURE_OIDC_CLIENTID=${AUTH_CLIENT_ID}
+      - FEATURE_OIDC_AUTHSERVERHOST=${AUTH_SERVER_URL}
+      - FEATURE_OIDC_AUTHSERVERURL=${AUTH_SERVER_URL}
+      - FEATURE_OIDC_ROLECLAIM=${JWT_ROLE_CLAIM}
+      - FEATURE_OIDC_PRINCIPALATTRIBUTE=preferred_username
+      - SPRINGDOC_SWAGGERUI_OAUTH_ADDITIONALQUERYSTRINGPARAMS_KC_IDP_HINT=${IDP_HINT}
+      # issuer-uri is used to auto discover keycloak configuration endpoints and to validate the iss in the token (spring boot check that issuer-uri and iss are identical)
+      # When using jwk-set-uri, issuer-uri is not used anymore to auto discover configuration.
+      # That's what we want here. By authenticating with swagger, host machine is used and the iss generated in the token is equals to issuer-uri
+      - spring.security.oauth2.resourceserver.jwt.issuer-uri=${AUTH_SERVER_URL}/realms/${AUTH_REALM}
+      - spring.security.oauth2.resourceserver.jwt.jwk-set-uri=http://keycloak:8080/realms/${AUTH_REALM}/protocol/openid-connect/certs
+      - FEATURE_PILOTAGE_ENABLED=true
+      - FEATURE_PILOTAGE_URL=http://pearl-api:8080
+      - FEATURE_SWAGGER_ENABLED=true
+      - FEATURE_COMMENTS_ENABLED=true
+      - FEATURE_CACHE_ENABLED=true
+      - FEATURE_INTERVIEWERMODE_ENABLED=true
+      - SPRING_LIQUIBASE_ENABLED=true
+      - SPRING_LIQUIBASE_CONTEXTS=demo
+      - SPRING_LIQUIBASE_CHANGELOG=classpath:db/integration-demo.xml
+    ports:
+      - ${QUESTIONNAIRE_API_PORT}:8080
+
+  keycloak:
+    profiles:
+      - keycloak
+      - all
+    image: quay.io/keycloak/keycloak:24.0
+    environment:
+      KEYCLOAK_ADMIN: administrator
+      KEYCLOAK_ADMIN_PASSWORD: administrator
+      KC_HEALTH_ENABLED: 'true'
+      KC_LOG_LEVEL: info
+    command: ['start-dev', '--import-realm']
+    ports:
+      - '${KEYCLOAK_PORT}:8080'
+    volumes:
+      - ./container/keycloak/realms:/opt/keycloak/data/import
+
+  pearl-api:
+    profiles:
+      - apis
+      - all
+    image: inseefr/pearl-jam-back-office:5.9.0-rc
+    depends_on:
+      pearl-db:
+        condition: service_healthy
+    environment:
+      - SPRING_DATASOURCE_DRIVERCLASSNAME=org.postgresql.Driver
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://pearl-db:5432/${PEARL_DB}
+      - SPRING_DATASOURCE_USERNAME=${PEARL_DB_USER}
+      - SPRING_DATASOURCE_PASSWORD=${PEARL_DB_PASSWORD}
+      - SPRINGDOC_SWAGGER_UI_OAUTH_ADDITIONALQUERYSTRINGPARAMS_KC_IDP_HINT=${IDP_HINT}
+      # issuer-uri is used to auto discover keycloak configuration endpoints and to validate the iss in the token (spring boot check that issuer-uri and iss are identical)
+      # When using jwk-set-uri, issuer-uri is not used anymore to auto discover configuration.
+      # That's what we want here. By authenticating with swagger, host machine is used and the iss generated in the token is equals to issuer-uri
+      - spring.security.oauth2.resourceserver.jwt.issuer-uri=${AUTH_SERVER_URL}/realms/${AUTH_REALM}
+      - spring.security.oauth2.resourceserver.jwt.jwk-set-uri=http://keycloak:8080/realms/${AUTH_REALM}/protocol/openid-connect/certs
+      - APPLICATION_HOST=http://localhost:${PEARL_API_PORT}
+      - APPLICATION_ROLES_INTERVIEWER=${INTERVIEWER_ROLE}
+      - APPLICATION_ROLES_LOCAL_USER=${INTERNAL_USER_ROLE}
+      - APPLICATION_ROLES_NATIONAL_USER=${INTERNAL_USER_ROLE}
+      - APPLICATION_ROLES_ADMIN=${ADMIN_ROLE}
+      - APPLICATION_ROLES_WEBCLIENT=${WEBCLIENT_ROLE}
+      - application.corsOrigins=http://localhost:3000
+      - FEATURE_OIDC_ENABLED=true
+      - FEATURE_OIDC_REALM=${AUTH_REALM}
+      - FEATURE_OIDC_CLIENTID=${AUTH_CLIENT_ID}
+      - FEATURE_OIDC_AUTHSERVERHOST=${AUTH_SERVER_URL}
+      - FEATURE_OIDC_AUTHSERVERURL=${AUTH_SERVER_URL}
+      - FEATURE_OIDC_PRINCIPALATTRIBUTE=preferred_username
+      - FEATURE_MAILSERVICE_ENABLED=false
+      - FEATURE_SWAGGER_ENABLED=true
+      - LOGGING_FILE_ENABLED=false
+      - SPRINGDOC_SWAGGER_UI_OAUTH_CLIENT_ID=${AUTH_CLIENT_ID}
+      - SPRING_LIQUIBASE_ENABLED=true
+      - SPRING_LIQUIBASE_CONTEXTS=demo
+      - SPRING_LIQUIBASE_CHANGELOG=classpath:db/integration-demo.xml
+    ports:
+      - ${PEARL_API_PORT}:8080
