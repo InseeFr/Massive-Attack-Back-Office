@@ -15,6 +15,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class InterrogationsList {
+
     @JacksonXmlProperty(localName = "SurveyUnit")
     @JacksonXmlElementWrapper(useWrapping = false)
     private List<Interrogation> interrogations;
