@@ -14,7 +14,7 @@
 	<groupId>fr.insee</groupId>
 	<artifactId>sabdatab</artifactId>
 	<packaging>war</packaging>
-	<version>4.1.0</version>
+	<version>4.1.1</version>
 	<name>Sabiane Data</name>
 
 	<properties>
