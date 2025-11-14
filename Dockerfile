@@ -1,17 +1,14 @@
-FROM tomcat:9-jre17-temurin
+FROM gitlab-registry.insee.fr/kubernetes/images/run/java:21.0.8_9-jre-jammy-rootless
 
-# Create a non-root user and group
-
-RUN rm -rf "$CATALINA_HOME"/webapps/*
-COPY sabdatab.properties log4j2.xml $CATALINA_HOME/webapps/
-COPY target/*.war $CATALINA_HOME/webapps/ROOT.war
+WORKDIR /opt/app/
+COPY ./target/*.jar /opt/app/app.jar
 
 # Setup a non-root user context (security)
-RUN addgroup -g 1000 tomcatgroup; \
-    adduser -D -s / -u 1000 tomcatuser -G tomcatgroup; \
-    chown -R tomcat:tomcat "$CATALINA_HOME"
+RUN addgroup -g 1000 tomcatgroup
+RUN adduser -D -s / -u 1000 tomcatuser -G tomcatgroup
+RUN mkdir /opt/app/temp-files
+RUN chown -R 1000:1000 /opt/app
 
 USER 1000
 
-# Start Tomcat
-CMD ["catalina.sh", "run"]
+ENTRYPOINT ["java", "-jar",  "/opt/app/app.jar"]

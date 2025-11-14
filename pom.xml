@@ -7,19 +7,19 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.5.5</version>
+		<version>3.5.6</version>
 		<relativePath/> <!-- Use default parent from central repo -->
 	</parent>
 
 	<groupId>fr.insee</groupId>
 	<artifactId>sabdatab</artifactId>
-	<packaging>war</packaging>
-	<version>4.1.1</version>
+	<packaging>jar</packaging>
+	<version>4.1.2</version>
 	<name>Sabiane Data</name>
 
 	<properties>
 		<java.version>17</java.version>
-		<final.war.name>sabdatab</final.war.name>
+		<final.jar.name>sabdatab</final.jar.name>
 		<springdoc-openapi-ui.version>1.7.0</springdoc-openapi-ui.version>
 		<saxon.version>12.5</saxon.version>
 		<commons-io.version>2.18.0</commons-io.version>
@@ -71,22 +71,6 @@
 			<optional>true</optional>
 		</dependency>
 
-		<!-- log4j -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter</artifactId>
-			<exclusions>
-				<exclusion>
-					<groupId>org.springframework.boot</groupId>
-					<artifactId>spring-boot-starter-logging</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-log4j2</artifactId>
-		</dependency>
-
 		<dependency>
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
@@ -103,7 +87,7 @@
 	</dependencies>
 
 	<build>
-		<finalName>${final.war.name}</finalName>
+		<finalName>${final.jar.name}</finalName>
 		<resources>
 			<resource>
 				<filtering>true</filtering>
@@ -123,14 +107,13 @@
 					<target>${java.version}</target>
 				</configuration>
 			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-war-plugin</artifactId>
-				<version>3.4.0</version> <!-- Update this version -->
-			</plugin>
+
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+				<configuration>
+					<mainClass>fr.insee.sabianedata.ws.AppWS</mainClass>
+				</configuration>
 				<executions>
 					<execution>
 						<id>repackage</id>
