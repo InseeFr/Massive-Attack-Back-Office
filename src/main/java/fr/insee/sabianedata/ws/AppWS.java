@@ -8,10 +8,8 @@ import fr.insee.sabianedata.ws.config.BearerAuthInterceptor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
-import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
@@ -25,25 +23,11 @@ import org.springframework.web.client.RestTemplate;
 @SpringBootApplication
 @ConfigurationPropertiesScan
 @Slf4j
-public class AppWS extends SpringBootServletInitializer {
+public class AppWS {
 
-    public static final String APP_NAME = "sabdatab";
 
     public static void main(String[] args) {
-        System.setProperty("spring.config.name", APP_NAME);
         SpringApplication.run(AppWS.class, args);
-    }
-
-    @Override
-    protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
-        System.setProperty("spring.config.name", APP_NAME);
-        setProperty();
-        return application.sources(AppWS.class);
-    }
-
-    public static void setProperty() {
-        System.setProperty("spring.config.location",
-                "classpath:/," + "file:///${catalina.base}/webapps/" + APP_NAME + ".properties");
     }
 
     @EventListener
@@ -65,7 +49,7 @@ public class AppWS extends SpringBootServletInitializer {
 
     @EventListener
     public void handleApplicationReady(ApplicationReadyEvent event) {
-        log.info("=============== " + APP_NAME + "  has successfully started. ===============");
+        log.info("=============== Massive Attack API has successfully started. ===============");
 
     }
 
