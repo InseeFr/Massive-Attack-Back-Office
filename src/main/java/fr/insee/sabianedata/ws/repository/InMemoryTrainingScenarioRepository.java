@@ -16,17 +16,19 @@ import fr.insee.sabianedata.ws.model.queen.QuestionnaireModelDto;
 import fr.insee.sabianedata.ws.service.ExtractionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.FileUtils;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.core.io.support.ResourcePatternResolver;
+import org.springframework.util.StreamUtils;
+import java.io.OutputStream;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Component;
 import org.springframework.util.FileSystemUtils;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
@@ -105,21 +107,42 @@ public class InMemoryTrainingScenarioRepository implements TrainingScenarioRepos
 		Path scenariiPath = tempScenariiFolder.toPath().toRealPath(); // resolves symlinks in scenarii subfolder
 
 		// Ensure the scenarii folder is truly a subdirectory of the base temp folder
-		// This prevents path tricks or symlink-based attacks that could redirect outside of temp
 		if (!scenariiPath.startsWith(realBasePath)) {
 			throw new IOException("Potential directory traversal or symlink attack.");
 		}
 
-		// Load scenarii files from the classpath
-		File scenariosFolder = resourceLoader.getResource("classpath:scenarii").getFile();
-		if (!scenariosFolder.exists()) {
-			log.error("Scenarii folder not found in classpath.");
-			throw new IOException("Scenarii folder not found in classpath.");
+		// Load scenarii files
+		ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
+		Resource[] resources = resolver.getResources("classpath*:/scenarii/**");
+
+		if (resources.length == 0) {
+			log.error("Scenarii folder not found in classpath or is empty.");
+			throw new IOException("Scenarii resources not found in classpath.");
 		}
 
-		// Safely copy classpath scenarii files into the validated temp/scenarii folder
-		FileUtils.copyDirectory(scenariosFolder, tempScenariiFolder);
+		for(Resource resource : resources) {
+			// handle only files
+			if (!resource.isReadable()) {
+				continue;
+			}
+
+			String urlPath = resource.getURL().toString();
+			int idx = urlPath.indexOf("/scenarii/");
+			String relativePath = urlPath.substring(idx + "/scenarii/".length());
+
+			File targetFile = new File(tempScenariiFolder, relativePath);
+			File parent = targetFile.getParentFile();
+			if (!parent.exists() && !parent.mkdirs()) {
+				throw new IOException("Failed to create directory: " + parent);
+			}
+
+			try (InputStream in = resource.getInputStream();
+				 OutputStream out = Files.newOutputStream(targetFile.toPath())) {
+				StreamUtils.copy(in, out);
+			}
+		}
 	}
+
 
 	private void loadScenarios() {
 		File[] scenarioFolders = tempScenariiFolder.listFiles();
