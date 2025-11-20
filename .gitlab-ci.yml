@@ -1,0 +1,22 @@
+include:
+  - component: $CI_SERVER_FQDN/sndi-lille/ressources-communes/components/meta-component-ci-java-vm/ci-java-vm@0.0.7-rc
+    inputs:
+#      sonar_token: $SONAR_TOKEN
+#      sonar_project_key: $SONAR_PROJECT_KEY
+      maven_java_version: 17
+
+
+stages:
+  - security-app
+  - build-app-and-test
+#  - quality
+#  - publish
+#  - deploy
+
+security-app:
+  stage : security-app
+  extends : .template:security-app
+
+build-app-and-test:
+  stage : build-app-and-test
+  extends : .template:build-app-and-test

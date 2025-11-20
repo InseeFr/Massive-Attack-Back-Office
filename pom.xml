@@ -14,7 +14,7 @@
 	<groupId>fr.insee</groupId>
 	<artifactId>sabdatab</artifactId>
 	<packaging>jar</packaging>
-	<version>4.1.2</version>
+	<version>4.2.0</version>
 	<name>Sabiane Data</name>
 
 	<properties>
